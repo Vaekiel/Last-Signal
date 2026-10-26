@@ -51,8 +51,9 @@ index.html          page du jeu
 css/style.css       interface pixel-art (adaptée au mobile)
 js/data.js          contenu et équilibrage : ressources, modules, recherches, secteurs…
 js/engine.js        moteur de simulation, sans DOM (testable sous Node)
-js/sprites.js       icônes pixel-art 16×16 dessinées en code
-js/scene.js         rendu canvas : vaisseau modulaire, planètes, Spécimen
+js/pixelforge.js    moteur de pixel-art ombré (reliefs, dégradés limités, tramage, contours)
+js/sprites.js       icônes pixel-art 32×32 construites en volumes
+js/scene.js         rendu canvas : fond en parallaxe, vaisseau modulaire, planètes, Spécimen
 js/ui.js            construction de l'interface et mises à jour ciblées
 js/main.js          démarrage, boucle de jeu, sauvegardes
 tools/simulation.js joueur automatique pour vérifier l'équilibrage

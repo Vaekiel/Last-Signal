@@ -210,7 +210,7 @@
     sc.append(h('div', { class: 'sc-txt' }, name, sub, B.bar(() => (s.run.time % 60) / 60, '#46d8ff', true)), pl);
     B.text(name, () => DS.sector(s.sector).name);
     B.text(sub, () => 'Cycle ' + (s.jumps + 1) + ' · Jour ' + (Math.floor(s.run.time / 60) + 1));
-    B.attr(pl, 'src', () => DS.planetURL(DS.sector(s.sector).planet, 48, 3 + s.sector * 5));
+    B.attr(pl, 'src', () => DS.planetURL(DS.sector(s.sector).planet, 54, 3 + s.sector * 5));
     sc.onclick = () => { if (s.flags.nav) ui.go('nav'); };
     // statistiques de la barre latérale
     const st = $('side-stats');
@@ -624,7 +624,7 @@
       const sc = DS.sector(i);
       if (i) map.append(h('span', { class: 'link' }));
       map.append(h('div', { class: 'node ' + (i < s.sector ? 'past' : i === s.sector ? 'cur' : 'next') },
-        h('img', { src: DS.planetURL(sc.planet, 40, 3 + i * 5), alt: '' }), h('span', null, i <= s.sector + 1 ? sc.name : '???')));
+        h('img', { src: DS.planetURL(sc.planet, 44, 3 + i * 5), alt: '' }), h('span', null, i <= s.sector + 1 ? sc.name : '???')));
     }
     el.append(h('section', { class: 'frame' }, map));
 
@@ -689,7 +689,7 @@
   VIEWS.specimen = function (el, B) {
     const s = ui.s;
     viewHead(el, 'specimen');
-    const cv = h('canvas', { class: 'tank', width: '120', height: '120', role: 'img', 'aria-label': 'Le Spécimen dans sa cuve' });
+    const cv = h('canvas', { class: 'tank', width: '128', height: '128', role: 'img', 'aria-label': 'Le Spécimen dans sa cuve' });
     ui.specCanvas = cv;
     const stage = h('h3'), lvl = h('span', { class: 'lvl num' }), xp = h('span', { class: 'stat' }), bonus = h('b');
     B.text(stage, () => DS.specStage(s.specimen.level).name);
