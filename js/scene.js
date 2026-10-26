@@ -147,21 +147,20 @@
   }
 
   // ------------------------------------------------------------------ fonds de secteur
-  // Six secteurs retravaillés : panoramas lumineux, objets détaillés et couches raccordées.
+  // Hélios (terra) sert de modèle ; chaque secteur a sa palette, ses objets et parfois un effet.
   const FAR = { scale: 115, warp: 90, threshold: 0.44, center: 0.42, spread: 0.62, stretch: 1.25 };
   const NEAR = { scale: 80, warp: 70, threshold: 0.54, center: 0.72, spread: 0.34, alpha: 0.6, stretch: 2.2 };
   const THEMES = {
-    terra:  { far: ['#200808', '#44140e', '#792411', '#af3b12', '#df6719', '#ff9e35'], near: ['#42110d', '#752013', '#ad3716', '#e3671e', '#ffaa47', '#ffe29a'], sky: ['#0b060c', '#28101a'], objects: ['rocks'], special: 'sun',
-               farO: { scale: 118, warp: 85, threshold: 0.48, center: 0.46, spread: 0.65, stretch: 1.35 }, nearO: { threshold: 0.59, center: 0.8, spread: 0.38, alpha: 0.58, stretch: 2.4 } },
-    ice:    { far: ['#03101c', '#06263e', '#0a4668', '#13779d', '#24a6c9', '#7fefff'], near: ['#07314b', '#0c5b79', '#138cae', '#31bcd8', '#91edff', '#e1ffff'], sky: ['#020811', '#08263e'], objects: ['shards', 'shards', 'rocks'], special: 'glints',
+    terra:  { far: ['#0d0a24', '#191242', '#261a62', '#3a2488', '#5634a8', '#7a50c8'], near: ['#1a1450', '#2c2280', '#4a36b0', '#7a5ad8', '#b08cf0', '#e2c8ff'], sky: ['#04050f', '#0a0c22'], objects: ['rocks'] },
+    ice:    { far: ['#03101c', '#062236', '#0b3852', '#12526e', '#1c708a', '#2e94a8'], near: ['#0b3a52', '#13607c', '#1f8ea8', '#3cbccc', '#86e6e2', '#dcfffa'], sky: ['#02070e', '#041626'], objects: ['shards', 'shards', 'rocks'], special: 'glints',
               farO: { scale: 120, warp: 80, threshold: 0.42, center: 0.36, spread: 0.7, stretch: 1.7 }, nearO: { scale: 70, warp: 60, threshold: 0.52, center: 0.7, spread: 0.4, alpha: 0.62, stretch: 2.8 } },
-    violet: { far: ['#13051e', '#280b39', '#45105c', '#7c1985', '#b52ba5', '#ed6fd6'], near: ['#26083b', '#4e0d63', '#802092', '#bf3ca9', '#e96cce', '#ffb6eb'], sky: ['#05020d', '#1b0626'], objects: ['satellites', 'rocks', 'satellites'],
+    violet: { far: ['#0e0418', '#1c0830', '#2e0e4a', '#461666', '#622080', '#82309a'], near: ['#2e0a40', '#4e1262', '#7a1e86', '#aa34a0', '#dc5cb8', '#ffb0dc'], sky: ['#05020b', '#11051c'], objects: ['satellites', 'rocks', 'satellites'],
               farO: { scale: 105, warp: 100, threshold: 0.43, center: 0.5, spread: 0.65, stretch: 1.1 } },
-    mars:   { far: ['#220909', '#3e110d', '#66200e', '#963310', '#c94e14', '#f78b25'], near: ['#431409', '#752312', '#ac3816', '#d9621c', '#ff993a', '#ffda84'], sky: ['#090407', '#290d0a'], objects: ['wrecks', 'rocks', 'rocks'],
+    mars:   { far: ['#120606', '#200b09', '#33120d', '#4a1c11', '#672a16', '#88401e'], near: ['#3e130f', '#661f13', '#943416', '#c2581c', '#ea8832', '#ffc472'], sky: ['#070304', '#170808'], objects: ['wrecks', 'rocks', 'rocks'],
               farO: { scale: 110, warp: 90, threshold: 0.47, center: 0.45, spread: 0.6, stretch: 1.3 } },
-    gas:    { far: ['#031722', '#073341', '#095361', '#0e7780', '#23a6a7', '#82e6ce'], near: ['#41250c', '#70400f', '#a9671a', '#e49c32', '#f7c45c', '#fff1ac'], sky: ['#030a12', '#0c2634'], objects: ['rocks'], special: 'lightning',
+    gas:    { far: ['#05111a', '#0a202e', '#0f3444', '#174c5a', '#246868', '#3c8a7a'], near: ['#3a2410', '#683e16', '#9c5e1c', '#cc882a', '#f2b848', '#fff0a6'], sky: ['#03070c', '#0a1420'], objects: ['rocks'], special: 'lightning',
               farO: { scale: 125, warp: 110, threshold: 0.4, center: 0.4, spread: 0.7, stretch: 1.4 }, nearO: { scale: 75, warp: 70, threshold: 0.53, center: 0.74, spread: 0.36, alpha: 0.6, stretch: 2.6 } },
-    dark:   { far: ['#070415', '#0f0a26', '#20153d', '#3b2062', '#654093', '#9e6de2'], near: ['#120d30', '#241443', '#40205e', '#623184', '#9252ae', '#bf8be9'], sky: ['#020207', '#08071a'], objects: ['monoliths', 'rocks'], special: 'gate' }
+    dark:   { far: ['#06030c', '#0e0618', '#180a28', '#24103a', '#34144e', '#4a1a66'], near: ['#28093a', '#441256', '#661c70', '#902a84', '#c6449a', '#f080b8'], sky: ['#020106', '#08040f'], objects: ['monoliths', 'rocks'], special: 'gate' }
   };
 
   function cloudLayer(W, H, pal, seed, opts) {
@@ -261,172 +260,43 @@
   }
 
 
-  // ------------------------------------------------------------------ détails HD, préparés une seule fois par secteur
-  // Tous les dessins restent en pixels entiers et utilisent une palette discrète.
-  function traitPixel(ctx, x0, y0, x1, y1, col) {
-    x0 = Math.round(x0); y0 = Math.round(y0);
-    x1 = Math.round(x1); y1 = Math.round(y1);
-    const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
-    ctx.fillStyle = col;
-    for (;;) {
-      ctx.fillRect(x0, y0, 1, 1);
-      if (x0 === x1 && y0 === y1) break;
-      const e = 2 * err;
-      if (e > -dy) { err -= dy; x0 += sx; }
-      if (e < dx) { err += dx; y0 += sy; }
-    }
-  }
+  // ------------------------------------------------------------------ décors approuvés
+  // Les deux PNG de chaque secteur sont chargés hors ligne depuis assets/.
+  // Le rendu procédural demeure affiché pendant le chargement ou si un PNG échoue.
+  const scriptDecor = typeof document !== 'undefined' ? document.currentScript : null;
+  const dossierDecor = scriptDecor && scriptDecor.src
+    ? new URL('../assets/', scriptDecor.src).href : 'assets/';
+  const decorCache = {};
+  const cadreDepart = { terra: 240, ice: 100, violet: 780, mars: 65, gas: 670, dark: 655 };
 
-  function soleilSprite(seed) {
-    const size = 196, mid = size / 2, image = canvas(size, size);
-    const ctx = image.getContext('2d');
-    const frame = ctx.createImageData(size, size), d = frame.data;
-    const rings = ['#6e190e', '#a42c0e', '#db4810', '#ff7620', '#ffad37', '#ffcf66', '#ffefa8', '#fffbdc'].map(hex);
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-      const dx = x - mid, dy = y - mid, rr = Math.hypot(dx, dy);
-      const a = Math.atan2(dy, dx);
-      const flare = Math.sin(a * 11 + 1.7) * 3.8 + Math.cos(a * 19 - 0.5) * 2.5;
-      const grain = hash3(x >> 2, y >> 2, 0, seed);
-      const surface = 55 + flare * 0.65 + (grain - 0.5) * 5;
-      const corona = 83 + flare * 1.7 + (grain - 0.5) * 13;
-      if (rr > corona || (rr > surface && dither(x, y) > (corona - rr) / Math.max(1, corona - surface) * 0.72)) continue;
-      let idx;
-      if (rr < surface) {
-        const q = rr / surface + (grain - 0.5) * 0.2 + (dither(x, y) - 0.5) * 0.12;
-        idx = q < 0.30 ? 7 : q < 0.57 ? 6 : q < 0.78 ? 5 : 4;
-      } else idx = rr < 64 ? 4 : rr < 70 ? 3 : rr < 77 ? 2 : 1;
-      const o = (y * size + x) * 4, c = rings[idx];
-      d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
+  function chargerDecor(type) {
+    if (decorCache[type]) return decorCache[type];
+    const resultat = { canvas: null, images: [], recus: 0, echec: false };
+    decorCache[type] = resultat;
+    if (typeof Image === 'undefined' || typeof document === 'undefined') return resultat;
+    for (let i = 1; i <= 2; i++) {
+      const photo = new Image();
+      resultat.images.push(photo);
+      photo.onload = function () {
+        if (resultat.echec) return;
+        if (photo.naturalWidth !== 720 || photo.naturalHeight !== 320) {
+          resultat.echec = true;
+          return;
+        }
+        if (++resultat.recus === 2) {
+          // Cache d'assemblage, jamais converti en data: (compatible file://).
+          const panoramique = canvas(1440, 320);
+          const ctx = panoramique.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(resultat.images[0], 0, 0);
+          ctx.drawImage(resultat.images[1], 720, 0);
+          resultat.canvas = panoramique;
+        }
+      };
+      photo.onerror = function () { resultat.echec = true; };
+      photo.src = dossierDecor + 'fond-' + type + '-' + i + '.png';
     }
-    ctx.putImageData(frame, 0, 0);
-    for (let k = 0; k < 14; k++) {
-      const a = (k / 14) * Math.PI * 2 + seed;
-      const r1 = 62 + (k % 4) * 3, r2 = r1 + 15 + (k * 7 % 18);
-      traitPixel(ctx, mid + Math.cos(a) * r1, mid + Math.sin(a) * r1,
-        mid + Math.cos(a + 0.08) * r2, mid + Math.sin(a + 0.08) * r2, k % 3 ? '#ff8624' : '#ffe27e');
-    }
-    return image;
-  }
-
-  // Poser une forme sur une couche de 720 px sans casser le raccord.
-  function poserRaccord(ctx, sprite, x, y, W, width, height) {
-    x = Math.round(x); y = Math.round(y);
-    const w = width || sprite.width, h = height || sprite.height;
-    ctx.drawImage(sprite, x, y, w, h);
-    if (x + w > W) ctx.drawImage(sprite, x - W, y, w, h);
-    if (x < 0) ctx.drawImage(sprite, x + W, y, w, h);
-  }
-
-  function structureAbandonnee(ctx, x, y, h, seed) {
-    const r = rng(seed), w = 22 + (seed % 3) * 6;
-    const top = Math.round(y - h), left = Math.round(x);
-    ctx.fillStyle = '#0c0921'; ctx.fillRect(left + 4, top, w - 8, h);
-    ctx.fillStyle = '#1e1434';
-    ctx.fillRect(left, top + 10, 5, h - 16);
-    ctx.fillRect(left + w - 5, top + 4, 5, h - 10);
-    ctx.fillRect(left - 6, top + 20, w + 12, 4);
-    ctx.fillRect(left - 9, top + h * 0.65 | 0, w + 18, 3);
-    ctx.fillStyle = '#5c356e';
-    ctx.fillRect(left + 5, top + 4, 2, h - 8);
-    ctx.fillRect(left + w - 8, top + 12, 1, h - 16);
-    traitPixel(ctx, left + w / 2, top - 15, left + w / 2, top + 8, '#664c88');
-    for (let k = 0; k < 13; k++) {
-      const xx = left + 7 + (r() * (w - 13) | 0), yy = top + 8 + (r() * (h - 16) | 0);
-      ctx.fillStyle = r() < 0.5 ? '#ce52ae' : '#57306f';
-      ctx.fillRect(xx, yy, 1, 2);
-    }
-  }
-
-  function eclairStatique(ctx, x, y, seed, col) {
-    const r = rng(seed), points = [[x, y]];
-    for (let i = 0; i < 8; i++) {
-      const last = points[points.length - 1];
-      points.push([last[0] + (r() - 0.5) * 26, last[1] + 8 + r() * 9]);
-    }
-    for (let i = 1; i < points.length; i++) {
-      const a = points[i - 1], b = points[i];
-      traitPixel(ctx, a[0] + 2, a[1], b[0] + 2, b[1], '#0a5165');
-      traitPixel(ctx, a[0], a[1], b[0], b[1], col);
-      if (i === 4) traitPixel(ctx, b[0], b[1], b[0] + 21, b[1] + 13, col);
-    }
-  }
-
-  function enrichirSecteur(far, near, type, seed) {
-    const W = far.width, H = far.height;
-    const f = far.getContext('2d'), n = near.getContext('2d');
-    f.imageSmoothingEnabled = false; n.imageSmoothingEnabled = false;
-    const r = rng(seed + 800);
-    if (type === 'terra') {
-      poserRaccord(f, soleilSprite(seed), 25, 5, W);
-      // Ceinture d'astéroïdes embrasée et filaments solaires.
-      for (let k = 0; k < 55; k++) {
-        const x = 60 + r() * 540, y = 105 + (r() - 0.5) * 90, s = 1 + (r() * 4 | 0);
-        f.fillStyle = r() < 0.3 ? '#ffb047' : r() < 0.6 ? '#76321e' : '#3d1920';
-        f.fillRect(x | 0, y | 0, s * 2, s);
-      }
-      for (let k = 0; k < 10; k++) {
-        const x = (260 + k * 43) % W, y = 60 + k * 13;
-        traitPixel(f, x, y, x + 26, y - 5, k % 2 ? '#d65c20' : '#803019');
-      }
-    } else if (type === 'ice') {
-      // Falaises cristallines, calées sur le plan proche pour un vrai relief.
-      for (let k = 0; k < 9; k++) {
-        const size = 24 + (k * 7 % 27);
-        const spr = shardSprite(size, seed + 13 + k);
-        const height = Math.round(size * (1.7 + (k % 3) * 0.32));
-        const width = Math.round(size * 1.55);
-        const x = 30 + k * 81 + (r() * 16 | 0);
-        const y = H - height + 19 + (k % 3) * 11;
-        poserRaccord(n, spr, x, y, W, width, height);
-      }
-      for (let k = 0; k < 26; k++) {
-        const x = r() * W | 0, y = 48 + r() * 232 | 0;
-        n.fillStyle = k % 3 ? '#7cecff' : '#e8ffff';
-        n.fillRect(x, y, 1 + (k % 6 === 0 ? 2 : 0), 1);
-      }
-    } else if (type === 'violet') {
-      for (let k = 0; k < 7; k++) {
-        const x = 25 + k * 105, h = 52 + (k * 23 % 76);
-        structureAbandonnee(n, x, H + 28, h, seed + k);
-      }
-      for (let k = 0; k < 4; k++) {
-        const spr = satelliteSprite(seed + 34 + k).c;
-        poserRaccord(f, spr, 90 + k * 158, 44 + (k % 3) * 56, W, 68, 40);
-      }
-    } else if (type === 'mars') {
-      for (let k = 0; k < 4; k++) {
-        const w = 76 + (k % 2) * 30, h = 31 + (k % 2) * 10;
-        const spr = wreckSprite(w, h, seed + 25 + k);
-        poserRaccord(f, spr, 30 + k * 177, 80 + (k % 3) * 54, W, w + 24, h + 14);
-      }
-      for (let k = 0; k < 34; k++) {
-        const x = r() * W | 0, y = 42 + r() * (H - 78) | 0;
-        n.fillStyle = k % 3 ? '#6d2013' : '#ffad3c';
-        n.fillRect(x, y, 3 + (k % 3), 1);
-      }
-    } else if (type === 'gas') {
-      for (let k = 0; k < 6; k++) {
-        const x = 55 + k * 128;
-        eclairStatique(f, x, 26 + (k % 2) * 25, seed + k, k % 2 ? '#a8fff2' : '#ffce5c');
-      }
-      for (let k = 0; k < 35; k++) {
-        const x = r() * W | 0, y = 100 + r() * 180 | 0;
-        n.fillStyle = k % 3 ? '#db9027' : '#4bddd7';
-        n.fillRect(x, y, 2 + k % 3, 1);
-      }
-    } else if (type === 'dark') {
-      for (let k = 0; k < 8; k++) {
-        const h = 40 + (k * 17 % 56), spr = monolithSprite(h, seed + k);
-        poserRaccord(n, spr, 16 + k * 96, H - h + 12, W, 22, h + 7);
-      }
-      for (let k = 0; k < 18; k++) {
-        const x = r() * W | 0, y = 48 + r() * 230 | 0;
-        n.fillStyle = k % 2 ? '#b37aff' : '#7648a8';
-        n.fillRect(x, y, 1, 2);
-      }
-    }
+    return resultat;
   }
 
   function buildBackground(sector) {
@@ -456,11 +326,9 @@
     dctx.putImageData(img, 0, 0);
     const far = cloudLayer(W, H, theme.far, seed + 1, Object.assign({}, FAR, theme.farO));
     const near = cloudLayer(W, H, theme.near, seed + 2, Object.assign({}, NEAR, theme.nearO));
-    enrichirSecteur(far, near, info.planet, seed);
     // étoiles vives (dessinées à chaque image pour scintiller)
     const stars = [];
-    for (let k = 0; k < 115; k++) stars.push({ x: r() * W, y: r() * H, s: r() < 0.11 ? 2 : r() < 0.4 ? 1 : 0, p: r() * 6.28,
-      c: info.planet === 'terra' || info.planet === 'mars' ? (r() < 0.6 ? '#ffe1a0' : '#a2cfff') : (r() < 0.15 ? '#ffe6a8' : r() < 0.3 ? '#ffc4f0' : '#dff0ff'), v: 0.5 + r() * 0.5 });
+    for (let k = 0; k < 90; k++) stars.push({ x: r() * W, y: r() * H, s: r() < 0.12 ? 2 : r() < 0.4 ? 1 : 0, p: r() * 6.28, c: r() < 0.15 ? '#ffe6a8' : r() < 0.3 ? '#ffc4f0' : '#dff0ff', v: 0.5 + r() * 0.5 });
     // planète et lune
     const pr = 92;
     const planet = canvas(pr * 4, pr * 3);
@@ -477,7 +345,8 @@
     }
     const gate = theme.special === 'gate' ? gateSprite(seed) : null;
     return { W, H, deep, far, near, stars, planet, pr, moon, objects, gate,
-      type: info.planet, special: theme.special || null, kinds: theme.objects };
+      art: chargerDecor(info.planet), type: info.planet,
+      special: theme.special || null, kinds: theme.objects };
   }
   // ------------------------------------------------------------------ scène principale
   const RW = DS.SHIP_ROOM.w, RH = DS.SHIP_ROOM.h;
@@ -602,8 +471,8 @@
       const bg = this.bg, ctx = this.ctx;
       const off = ((this.t * speed) % bg.W + bg.W) % bg.W;
       const x0 = -Math.round(off);
-      // Répéter aussi une troisième fois si un grand vaisseau élargit la scène.
-      for (let x = x0; x < this.W; x += bg.W) ctx.drawImage(img, x, yOff);
+      ctx.drawImage(img, x0, yOff);
+      if (x0 + bg.W < this.W) ctx.drawImage(img, x0 + bg.W, yOff);
     }
     frame(dt) {
       const ctx = this.ctx, W = this.W, H = this.H, s = this.state;
@@ -616,26 +485,24 @@
       const vy = Math.round((H - bg.H) / 2);
       // plans éloignés
       this.tile(bg.deep, 2, vy);
-      this.tile(bg.far, 6, vy);
-      if (bg.gate) {
-        const gx0 = Math.round(W * 0.68 - 75 - (still ? 0 : Math.sin(t * 0.15) * 2));
-        const gy0 = Math.round(H * 0.5 - 75);
-        const gx = gx0 + 75, gy = gy0 + 75;
-        // Vide central puis anneau antique lumineux, sans dessiner hors pixels.
-        ctx.fillStyle = '#050313';
-        for (let y = -58; y <= 58; y++) {
-          const dx = Math.floor(Math.sqrt(58 * 58 - y * y));
-          ctx.fillRect(gx - dx, gy + y, dx * 2 + 1, 1);
-        }
+      if (bg.gate && !(bg.art && bg.art.canvas)) {
+        const gx0 = Math.round(W * 0.06 - ((t * 0.4) % 30)), gy0 = Math.round(H * 0.06) - 12;
         ctx.drawImage(bg.gate, gx0, gy0);
-        const pulse = still ? 0.4 : 0.45 + 0.35 * Math.sin(t * 0.8);
-        ctx.globalAlpha = pulse;
-        ctx.fillStyle = '#ad83ff';
-        for (let k = 0; k < 22; k++) {
-          const a = k * Math.PI / 11 + (still ? 0 : t * 0.04);
-          ctx.fillRect(Math.round(gx + Math.cos(a) * 59), Math.round(gy + Math.sin(a) * 59), 2, 2);
-        }
-        ctx.globalAlpha = 1;
+        const p = still ? 0.12 : 0.08 + 0.06 * Math.sin(t * 0.9);
+        ctx.fillStyle = 'rgba(190,90,255,' + p.toFixed(3) + ')';
+        const gx = gx0 + 75, gy = gy0 + 75;
+        for (let y = -56; y <= 56; y += 2) for (let x = -56; x <= 56; x += 2) if (x * x + y * y < 56 * 56 && ((x + y) >> 1) % 2 === 0) ctx.fillRect(gx + x, gy + y, 1, 1);
+      }
+      this.tile(bg.far, 6, vy);
+      const decorValide = bg.art && bg.art.canvas;
+      if (decorValide) {
+        // Véritables pixels de la maquette approuvée, à mouvement continu.
+        // Les bords transparents en tramage fondent la fresque dans le ciel.
+        const largeur = decorValide.width;
+        const depart = cadreDepart[bg.type] || 0;
+        const avance = ((depart + t * 8) % largeur + largeur) % largeur;
+        for (let x = -Math.round(avance); x < W; x += largeur)
+          ctx.drawImage(decorValide, x, vy);
       }
       if (bg.special === 'lightning' && !still) {
         this.nextFlash -= dt;
@@ -655,11 +522,13 @@
         ctx.strokeStyle = this.flash > 0.11 ? '#ffffff' : '#9fe8ff'; ctx.lineWidth = 1;
         ctx.beginPath(); this.bolt.forEach(([x, y], i) => (i ? ctx.lineTo(Math.round(x) + 0.5, Math.round(y) + 0.5) : ctx.moveTo(Math.round(x) + 0.5, Math.round(y) + 0.5))); ctx.stroke();
       }
-      const pl = bg.planet;
-      ctx.drawImage(pl, bg.type === 'dark' ? -Math.round(bg.pr * 2.9) : Math.round(W - bg.pr * 2.55),
-        bg.type === 'dark' ? -Math.round(bg.pr * 1.4) : Math.round(-bg.pr * 0.95));
-      const mx = ((W + 60) - ((t * 3) % (W + 120)));
-      ctx.drawImage(bg.moon, Math.round(mx), Math.round(H * 0.16));
+      // Pas de planète en double par-dessus l'illustration validée.
+      if (!decorValide) {
+        const pl = bg.planet;
+        ctx.drawImage(pl, Math.round(W - bg.pr * 2.55), Math.round(-bg.pr * 0.95));
+        const mx = ((W + 60) - ((t * 3) % (W + 120)));
+        ctx.drawImage(bg.moon, Math.round(mx), Math.round(H * 0.16));
+      }
       for (const st of bg.stars) {
         const x = ((st.x - t * (8 + st.v * 6)) % bg.W + bg.W) % bg.W, y = st.y + vy;
         if (x > W + 2 || y < -2 || y > H + 2) continue;
@@ -675,7 +544,10 @@
           ctx.globalAlpha = 1;
         } else { ctx.globalAlpha = 0.3 + tw * 0.5; ctx.fillStyle = st.c; ctx.fillRect(X, Y, 1, 1); ctx.globalAlpha = 1; }
       }
+      // Un léger nuage en parallaxe garde de la profondeur sans masquer la fresque.
+      ctx.globalAlpha = decorValide ? 0.12 : 1;
       this.tile(bg.near, 15, vy);
+      ctx.globalAlpha = 1;
       // objets de second plan
       const move = still ? 0 : dt;
       for (let i = 0; i < this.mids.length; i++) {
