@@ -267,7 +267,7 @@
   const dossierDecor = scriptDecor && scriptDecor.src
     ? new URL('../assets/', scriptDecor.src).href : 'assets/';
   const decorCache = {};
-  const cadreDepart = { terra: 240, ice: 100, violet: 780, mars: 65, gas: 670, dark: 655 };
+  const cadreDepart = { terra: 640, ice: 300, violet: 965, mars: 270, gas: 940, dark: 880 };
 
   function chargerDecor(type) {
     if (decorCache[type]) return decorCache[type];
