@@ -40,6 +40,10 @@ La partie est sauvegardée automatiquement dans le navigateur, toutes les 15 sec
 6. **Anomalies** : six défis avec handicap, chacun récompensé par un bonus permanent.
 7. **Signal** : le second prestige. Il faut construire l'antenne depuis la Porte du Silence (secteur 6), puis émettre le Signal. Cela remet tout le voyage à zéro et rapporte des **fragments de signal**, qui achètent automatisations et multiplicateurs. Le but final est de transmettre le Dernier Signal.
 
+**Le vaisseau évolue.** L'ARCHE-09 se transforme avec vos achats. Ailes solaires, réservoirs, serres et dômes, observatoires, parabole, cheminées de fonderie, foreuse de proue, mâchoires de moissonneuse, nacelle à fusion, anneau de saut, hangars d'où partent les sondes, bras robotisés, blindage et tourelles, pylône du Signal, cocon du Spécimen, bouclier de phase et drones en orbite apparaissent au fil des modules, des recherches et des archives. Chaque saut ajoute une encoche sur la proue.
+
+**Secteurs.** Chaque secteur a son fond animé : nébuleuse violette d'Hélios, éclats de glace de la Nébuleuse de Verre, satellites des Veilleurs, épaves d'Orion, éclairs de Triskel, porte annulaire et monolithes de la Porte du Silence.
+
 **Transmissions.** Des événements à choix arrivent dans la messagerie (icône d'enveloppe) et disparaissent au bout de 2 min 30 s.
 
 **Absence.** Pendant votre absence, ou quand l'onglet est en arrière-plan, l'équipage passe en veille : la consommation est réduite et personne ne meurt. La production continue jusqu'à 12 heures.
@@ -53,7 +57,8 @@ js/data.js          contenu et équilibrage : ressources, modules, recherches, s
 js/engine.js        moteur de simulation, sans DOM (testable sous Node)
 js/pixelforge.js    moteur de pixel-art ombré (reliefs, dégradés limités, tramage, contours)
 js/sprites.js       icônes pixel-art 32×32 construites en volumes
-js/scene.js         rendu canvas : fond en parallaxe, vaisseau modulaire, planètes, Spécimen
+js/ship.js          le vaisseau : construit pièce par pièce selon modules, recherches et archives
+js/scene.js         rendu canvas : fonds de secteur en parallaxe, planètes, Spécimen
 js/ui.js            construction de l'interface et mises à jour ciblées
 js/main.js          démarrage, boucle de jeu, sauvegardes
 tools/simulation.js joueur automatique pour vérifier l'équilibrage
