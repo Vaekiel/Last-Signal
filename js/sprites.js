@@ -370,21 +370,64 @@
   };
 
   // ------------------------------------------------------------------ rendu et cache
+  // Les dessins procéduraux restent le repli tant que l'atlas PNG n'est pas chargé.
   const cache = {};
-  DS.spriteURL = function (name) {
-    if (cache[name]) return cache[name];
-    if (typeof document === 'undefined' || !S[name]) return '';
-    const F = new DS.Forge(32, 32);
-    S[name](F);
-    return (cache[name] = F.render().toDataURL());
-  };
-  DS.spriteCanvas = function (name) {
+  const atlasNames = 'alloy anomaly antenna check clock cloud crew cryo data debris echo energy flask food fragment gear heart hull ice journal lock mail map metal oxygen pickaxe planet play radar scan ship specimen star target tools wrench'.split(' ');
+  const atlasCoords = {};
+  atlasNames.forEach((name, i) => { atlasCoords[name] = [i % 6, Math.floor(i / 6)]; });
+  let atlasReady = false;
+  let atlas = null;
+
+  function spriteRender(name) {
+    if (atlasReady && atlasCoords[name]) {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 34;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      const [col, row] = atlasCoords[name];
+      ctx.drawImage(atlas, col * 32, row * 32, 32, 32, 1, 1, 32, 32);
+      return canvas;
+    }
     const F = new DS.Forge(32, 32);
     S[name](F);
     return F.render();
+  }
+
+  DS.spriteURL = function (name) {
+    if (cache[name]) return cache[name];
+    if (typeof document === 'undefined' || !S[name]) return '';
+    return (cache[name] = spriteRender(name).toDataURL());
+  };
+  DS.spriteCanvas = function (name) {
+    return spriteRender(name);
   };
   DS.icon = function (name, cls) {
     return '<img class="px ' + (cls || '') + '" src="' + DS.spriteURL(name) + '" alt="" aria-hidden="true" draggable="false">';
   };
   DS.SPRITE_NAMES = Object.keys(S);
+
+  if (typeof Image !== 'undefined') {
+    atlas = new Image();
+    atlas.onload = function () {
+      if (atlas.naturalWidth !== 192 || atlas.naturalHeight !== 192) return;
+      atlasReady = true;
+      const previous = { ...cache };
+      Object.keys(cache).forEach(name => { delete cache[name]; });
+      // Actualiser les icônes déjà affichées, sans toucher à js/ui.js.
+      if (typeof document !== 'undefined') {
+        const images = document.querySelectorAll('img.px');
+        images.forEach(img => {
+          for (const name of Object.keys(previous)) {
+            if (img.getAttribute('src') === previous[name]) {
+              img.src = DS.spriteURL(name);
+              break;
+            }
+          }
+        });
+      }
+    };
+    // Échec de chargement : les sprites procéduraux restent visibles.
+    atlas.onerror = function () {};
+    atlas.src = 'assets/icons.png';
+  }
 })(window.DS = window.DS || {});
