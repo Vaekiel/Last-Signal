@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier graphique — Dernier Signal</title>
+<style>
+  :root { color-scheme: dark; --bg: #050914; --panel: #0c1628; --edge: #1f355a; --ink: #e8f1ff; --ink-2: #9fb3cf; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, sans-serif; padding: 16px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 28px 0 10px; color: #bfe8ff; letter-spacing: .04em; text-transform: uppercase; }
+  p { color: var(--ink-2); margin: 0 0 8px; max-width: 80ch; }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .cell { background: var(--panel); border: 1px solid var(--edge); border-radius: 4px; padding: 8px; text-align: center; font: 12px ui-monospace, monospace; color: var(--ink-2); }
+  .cell img, .cell canvas { display: block; margin: 0 auto 6px; image-rendering: pixelated; }
+  .scene { width: min(100%, 980px); }
+  .scene canvas { width: 100%; }
+  .row1x { display: flex; flex-wrap: wrap; gap: 4px; background: #101e36; padding: 8px; border-radius: 4px; }
+  .row1x img { width: 34px; height: 34px; image-rendering: pixelated; }
+  label { color: var(--ink-2); }
+</style>
+</head>
+<body>
+<h1>Atelier graphique — Dernier Signal</h1>
+<p>Aperçu de tous les éléments graphiques, sans lancer de partie. Ouvrez ce fichier dans un navigateur après chaque modification de <code>js/pixelforge.js</code>, <code>js/sprites.js</code>, <code>js/ship.js</code> ou <code>js/scene.js</code>.</p>
+<label><input type="checkbox" id="anim" checked> Animations</label>
+
+<h2>Icônes (×3 puis taille réelle)</h2>
+<div class="grid" id="icons"></div>
+<div class="row1x" id="icons1x" style="margin-top:8px"></div>
+
+<h2>Salles du vaisseau (×2)</h2>
+<div class="grid" id="rooms"></div>
+
+<h2>Planètes</h2>
+<div class="grid" id="planets"></div>
+
+<h2>Évolution du vaisseau</h2>
+<div class="grid" id="ships"></div>
+
+<h2>Fonds des secteurs</h2>
+<div class="grid" id="sectors"></div>
+
+<h2>Spécimen (7 stades)</h2>
+<div class="grid" id="specimen"></div>
+
+<script src="../js/data.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/pixelforge.js"></script>
+<script src="../js/sprites.js"></script>
+<script src="../js/ship.js"></script>
+<script src="../js/scene.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cell = (parent, label, node) => { const d = document.createElement('div'); d.className = 'cell'; d.append(node, label); parent.append(d); return d; };
+const img = (src, w, h) => { const i = new Image(); i.src = src; i.style.width = w + 'px'; if (h) i.style.height = h + 'px'; return i; };
+
+for (const n of DS.SPRITE_NAMES) {
+  cell($('icons'), n, img(DS.spriteURL(n), 102, 102));
+  $('icons1x').append(img(DS.spriteURL(n), 34, 34));
+}
+for (const id of Object.keys(DS.ROOMS)) cell($('rooms'), id, img(DS.roomURL(id), 96, 68));
+for (const p of ['terra', 'ice', 'violet', 'mars', 'gas', 'dark']) cell($('planets'), p, img(DS.planetURL(p, 96, 7), 96, 96));
+
+// États de partie fictifs, uniquement pour l'aperçu (lecture seule par le rendu)
+const STAGES = [
+  ['Début de partie', s => {}],
+  ['Premiers modules', s => { s.mods = { solar: 4, drone: 6, collector: 2, condenser: 1, greenhouse: 1 }; }],
+  ['Milieu du premier cycle', s => {
+    s.mods = { solar: 14, drone: 22, collector: 9, condenser: 5, greenhouse: 5, battery: 4, lab: 10, extractor: 6, foundry: 6, cryo: 1 };
+    Object.assign(s.research, { photo: true, cryogenics: true, hangar: true, armor: true, robotArm: true, navigation: true });
+    s.crew.total = 6;
+  }],
+  ['Fin de partie', s => {
+    s.mods = { solar: 30, drone: 60, collector: 22, condenser: 12, greenhouse: 12, battery: 12, lab: 22, extractor: 20, foundry: 16, cryo: 3, nanites: 5, array: 8, fusion: 6, harvester: 8, biodome: 4, quantum: 4, plasma: 3 };
+    Object.assign(s.research, { photo: true, logistics: true, longrange: true, cryogenics: true, hangar: true, hangar2: true, hangar3: true, armor: true, robotArm: true, robotArm2: true, navigation: true, singularity: true, antenna: true });
+    s.signal.antenna = 3; s.specimen.found = true; s.specimen.level = 26; s.archives.shield = 3; s.jumps = 6; s.crew.total = 12;
+  }]
+];
+const scenes = [];
+function addScene(parent, label, setup) {
+  const s = DS.newState();
+  setup(s);
+  const cv = document.createElement('canvas');
+  const sc = new DS.Scene(cv);
+  sc.setState(s);
+  const d = cell(parent, label, cv);
+  d.classList.add('scene');
+  scenes.push(sc);
+}
+for (const [label, f] of STAGES) addScene($('ships'), label, f);
+for (let i = 0; i < 7; i++) addScene($('sectors'), 'Secteur ' + (i + 1) + ' — ' + DS.sector(i).name, s => { s.sector = i; STAGES[2][1](s); });
+
+const specs = [];
+for (const st of DS.SPEC_STAGES) {
+  const cv = document.createElement('canvas');
+  cv.width = 128; cv.height = 128; cv.style.width = '192px';
+  cell($('specimen'), st.name + ' (niv. ' + st.lvl + ')', cv);
+  specs.push([cv, st.lvl]);
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  const still = !$('anim').checked;
+  for (const sc of scenes) { sc.reduced = still; sc.frame(dt); }
+  for (const [cv, lvl] of specs) DS.drawSpecimen(cv.getContext('2d'), 128, 128, lvl, now / 1000, still);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

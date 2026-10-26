@@ -62,6 +62,9 @@ js/scene.js         rendu canvas : fonds de secteur en parallaxe, planètes, Sp�
 js/ui.js            construction de l'interface et mises à jour ciblées
 js/main.js          démarrage, boucle de jeu, sauvegardes
 tools/simulation.js joueur automatique pour vérifier l'équilibrage
+tools/atelier.html  aperçu de tous les graphismes, sans lancer de partie
+tools/verifier-graphismes.js  contrôle qu'une modification ne touche que les graphismes
+AGENTS.md           consignes pour les assistants IA (ChatGPT, Codex…)
 ```
 
 Tous les chiffres d'équilibrage se trouvent dans `js/data.js`. Après une modification, lancez la simulation :
@@ -71,3 +74,31 @@ node tools/simulation.js 10 3
 ```
 
 Elle simule 10 heures de jeu à 3 clics par seconde et affiche le moment de chaque saut et de chaque émission. Avec l'équilibrage actuel, ce joueur automatique fait son premier saut vers 10 min, sa première émission vers 1 h et gagne en un peu moins de 3 h. Un joueur humain mettra plutôt 6 à 8 heures.
+
+## Faire travailler une IA sur les graphismes
+
+`AGENTS.md` décrit à un assistant IA ce qu'il a le droit de faire : améliorer les icônes, le vaisseau et les fonds animés, sans toucher aux mécaniques, à l'interface ni aux textes. Codex le lit tout seul. Avec ChatGPT, commencez la conversation par : « Lis AGENTS.md à la racine du dépôt et respecte-le strictement. »
+
+Avant d'accepter ses modifications :
+
+```
+node tools/verifier-graphismes.js
+```
+
+Le contrôle échoue si un fichier hors du périmètre graphique a changé, si une icône, une salle ou une fonction attendue a disparu, ou si la simulation d'équilibrage ne donne plus le résultat de référence (`tools/simulation-reference.txt`). Ouvrez ensuite `tools/atelier.html` pour voir le résultat d'un coup d'œil.
+
+Pour relire une branche proposée par l'IA, indiquez la branche dont elle est partie. Tous ses commits sont alors comparés, y compris un éventuel changement d'`AGENTS.md` :
+
+```
+node tools/verifier-graphismes.js origin/claude/dernier-signal
+```
+
+Remplacez par `origin/main` une fois le jeu fusionné dans `main`.
+
+Ce contrôle aide à repérer les écarts, mais ne remplace pas un coup d'œil à la liste des fichiers modifiés dans la pull request.
+
+Si vous modifiez vous-même l'équilibrage, régénérez la référence :
+
+```
+node tools/simulation.js 0.75 3 > tools/simulation-reference.txt
+```
