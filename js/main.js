@@ -129,7 +129,7 @@
       ui.scene.frame(dt);
     }
     if (ui.tab === 'specimen' && ui.specCanvas && ui.specCanvas.isConnected) {
-      DS.drawSpecimen(ui.specCanvas.getContext('2d'), 120, 120, s.specimen.level, now / 1000, still);
+      DS.drawSpecimen(ui.specCanvas.getContext('2d'), 128, 128, s.specimen.level, now / 1000, still);
     }
   }
 
