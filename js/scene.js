@@ -319,6 +319,23 @@
     const info = DS.sector(sector);
     const theme = THEMES[info.planet] || THEMES.terra;
     const W = 720, H = 320, seed = 11 + sector * 7;
+    const art = chargerDecor(info.planet);
+    if (!art.echec) {
+      // Le PNG remplit le fond dès son chargement : inutile de générer
+      // les anciennes nébuleuses et planètes pendant l'attente.
+      const ciel = canvas(W, H), ctx = ciel.getContext('2d');
+      ctx.fillStyle = cielSecteur[info.planet] || '#080d1a';
+      ctx.fillRect(0, 0, W, H);
+      const r = rng(seed);
+      ctx.fillStyle = '#a9bfdf';
+      for (let k = 0; k < 100; k++) ctx.fillRect(r() * W | 0, r() * H | 0, 1, 1);
+      const vide = canvas(W, H);
+      return { W, H, deep: ciel, far: vide, near: vide, stars: [],
+        planet: vide, pr: 92, moon: vide, objects: [], gate: null,
+        art, type: info.planet, attente: true,
+        special: theme.special || null, kinds: theme.objects };
+    }
+    // Secours procédural si le chargement du PNG a réellement échoué.
     // ciel profond
     const deep = canvas(W, H), dctx = deep.getContext('2d');
     const img = dctx.createImageData(W, H), D = img.data;
@@ -361,7 +378,7 @@
     }
     const gate = theme.special === 'gate' ? gateSprite(seed) : null;
     return { W, H, deep, far, near, stars, planet, pr, moon, objects, gate,
-      art: chargerDecor(info.planet), type: info.planet,
+      art, type: info.planet, attente: false,
       special: theme.special || null, kinds: theme.objects };
   }
   // ------------------------------------------------------------------ scène principale
@@ -445,7 +462,12 @@
         this.walkers = [];
       }
       Object.assign(this.ship.fx, fx);
-      if (String(s.sector) !== this.bgKey) { this.bgKey = String(s.sector); this.bg = buildBackground(s.sector); this.resetObjects(); }
+      if (String(s.sector) !== this.bgKey ||
+        (this.bg && this.bg.attente && this.bg.art.echec)) {
+        this.bgKey = String(s.sector);
+        this.bg = buildBackground(s.sector);
+        this.resetObjects();
+      }
       const lit = this.ship.rooms.filter(rm => rm.id !== 'empty');
       const want = lit.length ? Math.min(s.crew.total, lit.length * 2) : 0;
       while (this.walkers.length < want) {
@@ -521,16 +543,17 @@
       const t = this.t;
       const bg = this.bg;
       const decorValide = !!(bg.art && bg.art.canvas);
+      const decorAttendu = decorValide || !!(bg.art && !bg.art.echec);
       const vy = Math.round((H - bg.H) / 2);
       if (decorValide) this.panoramaValide(bg, t);
       else {
         ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
         ctx.fillStyle = cielSecteur[bg.type] || '#080d1a';
         ctx.fillRect(0, 0, W, H);
-        // Dessins de secours uniquement en cas de PNG absent.
-        this.tile(bg.deep, 2, vy);
+        // Ciel discret en attendant le PNG, secours complet en cas d'échec.
+        this.tile(bg.deep, decorAttendu ? 0 : 2, vy);
       }
-      if (!decorValide && bg.gate) {
+      if (!decorAttendu && bg.gate) {
         const gx0 = Math.round(W * 0.06 - ((t * 0.4) % 30)), gy0 = Math.round(H * 0.06) - 12;
         ctx.drawImage(bg.gate, gx0, gy0);
         const p = still ? 0.12 : 0.08 + 0.06 * Math.sin(t * 0.9);
@@ -538,7 +561,7 @@
         const gx = gx0 + 75, gy = gy0 + 75;
         for (let y = -56; y <= 56; y += 2) for (let x = -56; x <= 56; x += 2) if (x * x + y * y < 56 * 56 && ((x + y) >> 1) % 2 === 0) ctx.fillRect(gx + x, gy + y, 1, 1);
       }
-      if (!decorValide) this.tile(bg.far, 6, vy);
+      if (!decorAttendu) this.tile(bg.far, 6, vy);
       if (bg.special === 'lightning' && !still) {
         this.nextFlash -= dt;
         if (this.nextFlash <= 0) {
@@ -558,13 +581,13 @@
         ctx.beginPath(); this.bolt.forEach(([x, y], i) => (i ? ctx.lineTo(Math.round(x) + 0.5, Math.round(y) + 0.5) : ctx.moveTo(Math.round(x) + 0.5, Math.round(y) + 0.5))); ctx.stroke();
       }
       // Pas de planète en double par-dessus l'illustration validée.
-      if (!decorValide) {
+      if (!decorAttendu) {
         const pl = bg.planet;
         ctx.drawImage(pl, Math.round(W - bg.pr * 2.55), Math.round(-bg.pr * 0.95));
         const mx = ((W + 60) - ((t * 3) % (W + 120)));
         ctx.drawImage(bg.moon, Math.round(mx), Math.round(H * 0.16));
       }
-      if (!decorValide) for (const st of bg.stars) {
+      if (!decorAttendu) for (const st of bg.stars) {
         const x = ((st.x - t * (8 + st.v * 6)) % bg.W + bg.W) % bg.W, y = st.y + vy;
         if (x > W + 2 || y < -2 || y > H + 2) continue;
         const tw = still ? 0.7 : 0.5 + 0.5 * Math.sin(t * (1.5 + st.v * 2) + st.p);
@@ -580,10 +603,10 @@
         } else { ctx.globalAlpha = 0.3 + tw * 0.5; ctx.fillStyle = st.c; ctx.fillRect(X, Y, 1, 1); ctx.globalAlpha = 1; }
       }
       // Pas de nébuleuse procédurale au-dessus de la maquette validée.
-      if (!decorValide) this.tile(bg.near, 15, vy);
+      if (!decorAttendu) this.tile(bg.near, 15, vy);
       // objets de second plan
       const move = still ? 0 : dt;
-      if (!decorValide) for (let i = 0; i < this.mids.length; i++) {
+      if (!decorAttendu) for (let i = 0; i < this.mids.length; i++) {
         const a = this.mids[i];
         a.x -= a.v * move;
         if (a.x < -a.spr.width - 4) { this.mids[i] = this.spawn(Math.random, 'mid', false); continue; }
@@ -654,13 +677,13 @@
         this.parts.push({ x: o.x + rr.x + Math.random() * RW, y: oy + rr.y, vx: (Math.random() - 0.5) * 30, vy: -20 - Math.random() * 20, life: 0, dur: 0.5, c: '#ffe14a', size: 1 });
       }
       // premier plan : les vieux rochers ne couvrent plus les nouveaux panoramas.
-      if (!decorValide) for (let i = 0; i < this.fronts.length; i++) {
+      if (!decorAttendu) for (let i = 0; i < this.fronts.length; i++) {
         const a = this.fronts[i];
         a.x -= a.v * move;
         if (a.x < -a.spr.width - 10) this.fronts[i] = this.spawn(Math.random, 'front', false);
         else ctx.drawImage(a.spr, Math.round(a.x), Math.round(a.y));
       }
-      if (!still && !decorValide) {
+      if (!still && !decorAttendu) {
         ctx.fillStyle = '#9fc8ff';
         for (const d of this.dust) {
           d.x -= d.v * dt;
