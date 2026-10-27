@@ -272,6 +272,26 @@
   const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
     mars: '#35140c', gas: '#092532', dark: '#110c28' };
 
+  // Cinq voiles de scintillements très clairsemés + le panorama = six plans.
+  // Leur couleur appartient au secteur, sans récupérer les vieux sprites.
+  const lueursSecteur = {
+    terra: ['#ffbc53', '#ff7829'], ice: ['#aeffff', '#36cbff'],
+    violet: ['#ef8df0', '#ad61d8'], mars: ['#ffc06b', '#e77a38'],
+    gas: ['#83fff0', '#ffc35c'], dark: ['#bba4ff', '#8059ca']
+  };
+  function lueursDecor(type, seed) {
+    const r = rng(seed + 311);
+    const couleurs = lueursSecteur[type] || lueursSecteur.terra;
+    return [2, 3, 5, 9, 14].map((vitesse, plan) => ({
+      vitesse, teinte: couleurs[plan % 2],
+      points: Array.from({ length: plan < 2 ? 12 : 7 }, (_, i) => ({
+        x: r() * 900, y: r() * 390,
+        phase: r() * Math.PI * 2, intensite: 0.25 + r() * 0.35,
+        taille: i % 11 === 0 ? 2 : 1
+      }))
+    }));
+  }
+
   function chargerDecor(type) {
     if (decorCache[type]) return decorCache[type];
     const resultat = { canvas: null, images: [], recus: 0, echec: false };
@@ -333,6 +353,7 @@
       return { W, H, deep: ciel, far: vide, near: vide, stars: [],
         planet: vide, pr: 92, moon: vide, objects: [], gate: null,
         art, type: info.planet, attente: true,
+        lueurs: lueursDecor(info.planet, seed),
         special: theme.special || null, kinds: theme.objects };
     }
     // Secours procédural si le chargement du PNG a réellement échoué.
@@ -516,6 +537,22 @@
       const x0 = -Math.round(off);
       for (let x = x0; x < this.W; x += bg.W) ctx.drawImage(img, x, yOff);
     }
+    lueursValidees(bg, t) {
+      const ctx = this.ctx, W = this.W, H = this.H;
+      for (const plan of bg.lueurs) {
+        ctx.fillStyle = plan.teinte;
+        for (const p of plan.points) {
+          const x = ((p.x - t * plan.vitesse) % W + W) % W;
+          const y = p.y % H;
+          const lumiere = this.reduced ? 0.5 : 0.5 + Math.sin(t * 1.5 + p.phase) * 0.5;
+          if (lumiere > 0.75) {
+            ctx.globalAlpha = p.intensite;
+            ctx.fillRect(x | 0, y | 0, p.taille, p.taille);
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
     panoramaValide(bg, t) {
       const ctx = this.ctx, image = bg.art.canvas;
       const hauteur = this.H * this.resolution;
@@ -545,8 +582,10 @@
       const decorValide = !!(bg.art && bg.art.canvas);
       const decorAttendu = decorValide || !!(bg.art && !bg.art.echec);
       const vy = Math.round((H - bg.H) / 2);
-      if (decorValide) this.panoramaValide(bg, t);
-      else {
+      if (decorValide) {
+        this.panoramaValide(bg, t);
+        this.lueursValidees(bg, t);
+      } else {
         ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
         ctx.fillStyle = cielSecteur[bg.type] || '#080d1a';
         ctx.fillRect(0, 0, W, H);
