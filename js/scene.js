@@ -261,13 +261,14 @@
 
 
   // ------------------------------------------------------------------ décors approuvés
-  // Les deux PNG de chaque secteur sont chargés hors ligne depuis assets/.
-  // Le rendu procédural demeure affiché pendant le chargement ou si un PNG échoue.
+  // Deux couches peintes pour chaque secteur, en PNG locaux et sans dépendance.
+  // Le ciel procédural sert exclusivement de secours en cas d'échec de chargement.
   const scriptDecor = typeof document !== 'undefined' ? document.currentScript : null;
   const dossierDecor = scriptDecor && scriptDecor.src
     ? new URL('../assets/', scriptDecor.src).href : 'assets/';
   const decorCache = {};
-  const cadreDepart = { terra: 640, ice: 300, violet: 965, mars: 270, gas: 940, dark: 880 };
+  // Cadrage pensé pour le rapport largeur/hauteur réel de la scène du vaisseau.
+  const cadreDepart = { terra: 946, ice: 972, violet: 908, mars: 993, gas: 867, dark: 858 };
   // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
   const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
     mars: '#35140c', gas: '#092532', dark: '#110c28' };
@@ -294,44 +295,39 @@
 
   function chargerDecor(type) {
     if (decorCache[type]) return decorCache[type];
-    const resultat = { canvas: null, images: [], recus: 0, echec: false };
+    const resultat = { canvas: null, avant: null, images: [], echec: false };
     decorCache[type] = resultat;
     if (typeof Image === 'undefined' || typeof document === 'undefined') return resultat;
-    for (let i = 1; i <= 2; i++) {
-      const photo = new Image();
-      resultat.images.push(photo);
-      photo.onload = function () {
-        if (resultat.echec) return;
-        if (photo.naturalWidth !== 720 || photo.naturalHeight !== 320) {
-          resultat.echec = true;
-          return;
-        }
-        if (++resultat.recus === 2) {
-          // Le recadrage retire les marges transparentes de la planche.
-          // Deux passes issues des mêmes illustrations remplissent toute la hauteur.
-          // Aucun nuage, astéroïde ni ciel procédural n'apparaît sous le PNG.
+
+    function chargerPaire(suffixe, cle, obligatoire) {
+      const photos = [];
+      let recus = 0;
+      for (let i = 1; i <= 2; i++) {
+        const photo = new Image();
+        photos.push(photo);
+        resultat.images.push(photo);
+        photo.onload = function () {
+          if (photo.naturalWidth !== 720 || photo.naturalHeight !== 320) {
+            if (obligatoire) resultat.echec = true;
+            return;
+          }
+          if (++recus !== 2 || (obligatoire && resultat.echec)) return;
+          // Deux tuiles originales côte à côte pour conserver les détails HD.
           const panoramique = canvas(1440, 320);
           const ctx = panoramique.getContext('2d');
           ctx.imageSmoothingEnabled = false;
-          ctx.fillStyle = cielSecteur[type] || '#080d1a';
-          ctx.fillRect(0, 0, 1440, 320);
-          for (let j = 0; j < 2; j++) {
-            const x = j * 720, image = resultat.images[j];
-            ctx.drawImage(image, 0, 75, 720, 178, x, 0, 720, 320);
-            ctx.drawImage(image, 0, 53, 720, 223, x, 0, 720, 320);
-          }
-          // Raccord des extrémités pour une boucle horizontale sans saut.
-          for (let x = 0; x < 72; x++) {
-            ctx.globalAlpha = (x + 1) / 72;
-            ctx.drawImage(panoramique, x, 0, 1, 320, 1440 - 72 + x, 0, 1, 320);
-          }
-          ctx.globalAlpha = 1;
-          resultat.canvas = panoramique;
-        }
-      };
-      photo.onerror = function () { resultat.echec = true; };
-      photo.src = dossierDecor + 'fond-' + type + '-' + i + '.png';
+          ctx.drawImage(photos[0], 0, 0);
+          ctx.drawImage(photos[1], 720, 0);
+          resultat[cle] = panoramique;
+        };
+        photo.onerror = function () {
+          if (obligatoire) resultat.echec = true;
+        };
+        photo.src = dossierDecor + 'fond-' + type + suffixe + '-' + i + '.png';
+      }
     }
+    chargerPaire('', 'canvas', true);
+    chargerPaire('-avant', 'avant', false);
     return resultat;
   }
 
@@ -554,23 +550,32 @@
       ctx.globalAlpha = 1;
     }
     panoramaValide(bg, t) {
-      const ctx = this.ctx, image = bg.art.canvas;
+      const ctx = this.ctx;
       const hauteur = this.H * this.resolution;
       const largeur = this.W * this.resolution;
-      const facteur = hauteur / image.height;
-      const pas = image.width * facteur;
-      const debut = cadreDepart[bg.type] || 0;
-      const mouvement = (debut + t * 8) * facteur;
-      const decalage = ((mouvement % pas) + pas) % pas;
-      // Source à la définition des maquettes, sans lissage et en mode cover.
-      // Le cadrage s'adapte à toutes les tailles évolutives du vaisseau.
+      const art = bg.art;
+
+      function dessinerPlan(image, avance) {
+        if (!image) return;
+        const facteur = hauteur / image.height;
+        const pas = image.width * facteur;
+        const depart = cadreDepart[bg.type] || 0;
+        const mouvement = (depart + t * avance) * facteur;
+        const decalage = ((mouvement % pas) + pas) % pas;
+        for (let x = -decalage; x < largeur; x += pas) {
+          ctx.drawImage(image, Math.round(x), 0, Math.ceil(pas) + 1, hauteur);
+        }
+      }
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.imageSmoothingEnabled = false;
-      for (let x = -decalage; x < largeur; x += pas) {
-        ctx.drawImage(image, Math.round(x), 0, Math.ceil(pas) + 1, hauteur);
-      }
+      // Ciel, nébuleuses et planètes : dessin opaque couvrant toute la scène.
+      dessinerPlan(art.canvas, 7);
+      // Éléments proches : transparence native et parallaxe distincte.
+      dessinerPlan(art.avant, 16);
       ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
     }
+
     frame(dt) {
       const ctx = this.ctx, W = this.W, H = this.H, s = this.state;
       if (!s || !this.bg || !this.ship) return;
