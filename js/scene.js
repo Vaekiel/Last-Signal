@@ -268,6 +268,9 @@
     ? new URL('../assets/', scriptDecor.src).href : 'assets/';
   const decorCache = {};
   const cadreDepart = { terra: 640, ice: 300, violet: 965, mars: 270, gas: 940, dark: 880 };
+  // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
+  const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
+    mars: '#35140c', gas: '#092532', dark: '#110c28' };
 
   function chargerDecor(type) {
     if (decorCache[type]) return decorCache[type];
@@ -284,12 +287,25 @@
           return;
         }
         if (++resultat.recus === 2) {
-          // Cache d'assemblage, jamais converti en data: (compatible file://).
+          // Le recadrage retire les marges transparentes de la planche.
+          // Deux passes issues des mêmes illustrations remplissent toute la hauteur.
+          // Aucun nuage, astéroïde ni ciel procédural n'apparaît sous le PNG.
           const panoramique = canvas(1440, 320);
           const ctx = panoramique.getContext('2d');
           ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(resultat.images[0], 0, 0);
-          ctx.drawImage(resultat.images[1], 720, 0);
+          ctx.fillStyle = cielSecteur[type] || '#080d1a';
+          ctx.fillRect(0, 0, 1440, 320);
+          for (let j = 0; j < 2; j++) {
+            const x = j * 720, image = resultat.images[j];
+            ctx.drawImage(image, 0, 75, 720, 178, x, 0, 720, 320);
+            ctx.drawImage(image, 0, 53, 720, 223, x, 0, 720, 320);
+          }
+          // Raccord des extrémités pour une boucle horizontale sans saut.
+          for (let x = 0; x < 72; x++) {
+            ctx.globalAlpha = (x + 1) / 72;
+            ctx.drawImage(panoramique, x, 0, 1, 320, 1440 - 72 + x, 0, 1, 320);
+          }
+          ctx.globalAlpha = 1;
           resultat.canvas = panoramique;
         }
       };
@@ -355,7 +371,11 @@
       this.cv = cv;
       this.ctx = cv.getContext('2d');
       this.W = 440; this.H = 200;
-      cv.width = this.W; cv.height = this.H;
+      // Une unité logique conserve les coordonnées du jeu ; deux pixels
+      // physiques donnent plus de finesse aux fonds sans modifier le gameplay.
+      this.resolution = 2;
+      cv.width = this.W * this.resolution;
+      cv.height = this.H * this.resolution;
       this.t = 0;
       this.parts = [];
       this.rings = [];
@@ -418,7 +438,8 @@
         const H = Math.max(Math.round(W * 0.44), this.ship.H + 44);
         if (W !== this.W || H !== this.H) {
           this.W = W; this.H = H;
-          this.cv.width = W; this.cv.height = H;
+          this.cv.width = W * this.resolution;
+          this.cv.height = H * this.resolution;
           this.resetObjects();
         }
         this.walkers = [];
@@ -471,8 +492,25 @@
       const bg = this.bg, ctx = this.ctx;
       const off = ((this.t * speed) % bg.W + bg.W) % bg.W;
       const x0 = -Math.round(off);
-      ctx.drawImage(img, x0, yOff);
-      if (x0 + bg.W < this.W) ctx.drawImage(img, x0 + bg.W, yOff);
+      for (let x = x0; x < this.W; x += bg.W) ctx.drawImage(img, x, yOff);
+    }
+    panoramaValide(bg, t) {
+      const ctx = this.ctx, image = bg.art.canvas;
+      const hauteur = this.H * this.resolution;
+      const largeur = this.W * this.resolution;
+      const facteur = hauteur / image.height;
+      const pas = image.width * facteur;
+      const debut = cadreDepart[bg.type] || 0;
+      const mouvement = (debut + t * 8) * facteur;
+      const decalage = ((mouvement % pas) + pas) % pas;
+      // Source à la définition des maquettes, sans lissage et en mode cover.
+      // Le cadrage s'adapte à toutes les tailles évolutives du vaisseau.
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+      for (let x = -decalage; x < largeur; x += pas) {
+        ctx.drawImage(image, Math.round(x), 0, Math.ceil(pas) + 1, hauteur);
+      }
+      ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
     }
     frame(dt) {
       const ctx = this.ctx, W = this.W, H = this.H, s = this.state;
@@ -482,10 +520,17 @@
       if (!still) this.t += dt;
       const t = this.t;
       const bg = this.bg;
+      const decorValide = !!(bg.art && bg.art.canvas);
       const vy = Math.round((H - bg.H) / 2);
-      // plans éloignés
-      this.tile(bg.deep, 2, vy);
-      if (bg.gate && !(bg.art && bg.art.canvas)) {
+      if (decorValide) this.panoramaValide(bg, t);
+      else {
+        ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
+        ctx.fillStyle = cielSecteur[bg.type] || '#080d1a';
+        ctx.fillRect(0, 0, W, H);
+        // Dessins de secours uniquement en cas de PNG absent.
+        this.tile(bg.deep, 2, vy);
+      }
+      if (!decorValide && bg.gate) {
         const gx0 = Math.round(W * 0.06 - ((t * 0.4) % 30)), gy0 = Math.round(H * 0.06) - 12;
         ctx.drawImage(bg.gate, gx0, gy0);
         const p = still ? 0.12 : 0.08 + 0.06 * Math.sin(t * 0.9);
@@ -493,17 +538,7 @@
         const gx = gx0 + 75, gy = gy0 + 75;
         for (let y = -56; y <= 56; y += 2) for (let x = -56; x <= 56; x += 2) if (x * x + y * y < 56 * 56 && ((x + y) >> 1) % 2 === 0) ctx.fillRect(gx + x, gy + y, 1, 1);
       }
-      this.tile(bg.far, 6, vy);
-      const decorValide = bg.art && bg.art.canvas;
-      if (decorValide) {
-        // Véritables pixels de la maquette approuvée, à mouvement continu.
-        // Les bords transparents en tramage fondent la fresque dans le ciel.
-        const largeur = decorValide.width;
-        const depart = cadreDepart[bg.type] || 0;
-        const avance = ((depart + t * 8) % largeur + largeur) % largeur;
-        for (let x = -Math.round(avance); x < W; x += largeur)
-          ctx.drawImage(decorValide, x, vy);
-      }
+      if (!decorValide) this.tile(bg.far, 6, vy);
       if (bg.special === 'lightning' && !still) {
         this.nextFlash -= dt;
         if (this.nextFlash <= 0) {
@@ -529,7 +564,7 @@
         const mx = ((W + 60) - ((t * 3) % (W + 120)));
         ctx.drawImage(bg.moon, Math.round(mx), Math.round(H * 0.16));
       }
-      for (const st of bg.stars) {
+      if (!decorValide) for (const st of bg.stars) {
         const x = ((st.x - t * (8 + st.v * 6)) % bg.W + bg.W) % bg.W, y = st.y + vy;
         if (x > W + 2 || y < -2 || y > H + 2) continue;
         const tw = still ? 0.7 : 0.5 + 0.5 * Math.sin(t * (1.5 + st.v * 2) + st.p);
@@ -544,13 +579,11 @@
           ctx.globalAlpha = 1;
         } else { ctx.globalAlpha = 0.3 + tw * 0.5; ctx.fillStyle = st.c; ctx.fillRect(X, Y, 1, 1); ctx.globalAlpha = 1; }
       }
-      // Un léger nuage en parallaxe garde de la profondeur sans masquer la fresque.
-      ctx.globalAlpha = decorValide ? 0.12 : 1;
-      this.tile(bg.near, 15, vy);
-      ctx.globalAlpha = 1;
+      // Pas de nébuleuse procédurale au-dessus de la maquette validée.
+      if (!decorValide) this.tile(bg.near, 15, vy);
       // objets de second plan
       const move = still ? 0 : dt;
-      for (let i = 0; i < this.mids.length; i++) {
+      if (!decorValide) for (let i = 0; i < this.mids.length; i++) {
         const a = this.mids[i];
         a.x -= a.v * move;
         if (a.x < -a.spr.width - 4) { this.mids[i] = this.spawn(Math.random, 'mid', false); continue; }
@@ -620,14 +653,14 @@
         const rr = sh.rooms[Math.random() * sh.rooms.length | 0];
         this.parts.push({ x: o.x + rr.x + Math.random() * RW, y: oy + rr.y, vx: (Math.random() - 0.5) * 30, vy: -20 - Math.random() * 20, life: 0, dur: 0.5, c: '#ffe14a', size: 1 });
       }
-      // premier plan
-      for (let i = 0; i < this.fronts.length; i++) {
+      // premier plan : les vieux rochers ne couvrent plus les nouveaux panoramas.
+      if (!decorValide) for (let i = 0; i < this.fronts.length; i++) {
         const a = this.fronts[i];
         a.x -= a.v * move;
         if (a.x < -a.spr.width - 10) this.fronts[i] = this.spawn(Math.random, 'front', false);
         else ctx.drawImage(a.spr, Math.round(a.x), Math.round(a.y));
       }
-      if (!still) {
+      if (!still && !decorValide) {
         ctx.fillStyle = '#9fc8ff';
         for (const d of this.dust) {
           d.x -= d.v * dt;
