@@ -318,6 +318,23 @@
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(photos[0], 0, 0);
           ctx.drawImage(photos[1], 720, 0);
+          if (cle === 'canvas') {
+            // Fondu court sur le raccord horizontal, sans lecture des pixels.
+            for (let x = 0; x < 32; x++) {
+              ctx.globalAlpha = (x + 1) / 32;
+              ctx.drawImage(panoramique, x, 0, 1, 320, 1408 + x, 0, 1, 320);
+            }
+            ctx.globalAlpha = 1;
+          } else {
+            // Atténuer les objets aux extrémités avant le défilement.
+            ctx.globalCompositeOperation = 'destination-out';
+            for (let x = 0; x < 20; x++) {
+              ctx.fillStyle = 'rgba(0,0,0,' + ((20 - x) / 20).toFixed(3) + ')';
+              ctx.fillRect(x, 0, 1, 320);
+              ctx.fillRect(1439 - x, 0, 1, 320);
+            }
+            ctx.globalCompositeOperation = 'source-over';
+          }
           resultat[cle] = panoramique;
         };
         photo.onerror = function () {
