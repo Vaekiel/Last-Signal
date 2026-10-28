@@ -702,7 +702,13 @@
         ctx.fillRect(o.x + e.x - 6, oy + e.y - e.h, 6, e.h * 2);
         ctx.globalAlpha = 1;
       }
-      ctx.drawImage(sh.canvas, o.x, oy);
+      // Le vaisseau possède sa propre finition 2×, conservant les salles
+      // et les coordonnées logiques d'origine pour tout le reste du jeu.
+      if (sh.canvasHD && this.resolution === 2) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(sh.canvasHD, o.x * 2, oy * 2);
+        ctx.setTransform(2, 0, 0, 2, 0, 0);
+      } else ctx.drawImage(sh.canvas, o.x, oy);
       // équipage
       for (const w of this.walkers) {
         if (!still) {
