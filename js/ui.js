@@ -1,4 +1,4 @@
-/* Dernier Signal — interface (construction du DOM et mises à jour ciblées). */
+/* Last Signal — interface (construction du DOM et mises à jour ciblées). */
 'use strict';
 (function (DS) {
   const ui = DS.ui = { tab: 'ship', buyMode: 1, s: null, scene: null, newTabs: new Set(), pointer: null, lastSave: 0, cloud: 'local' };
@@ -883,7 +883,7 @@
     const danger = h('div', { class: 'panel-b' },
       h('div', { class: 'opt-row' }, h('div', null, h('h4', null, 'Recommencer de zéro'), h('p', null, 'Efface toute la progression, archives et fragments compris.')),
         h('button', { class: 'btn red', type: 'button', onclick: () => ui.confirmReset() }, 'Effacer')),
-      h('p', { class: 'stat', style: 'margin-top:8px' }, 'Dernier Signal v' + DS.VERSION + ' — jeu incrémental de survie spatiale. La partie est enregistrée dans ce navigateur, et sur votre compte quand c’est possible.'));
+      h('p', { class: 'stat', style: 'margin-top:8px' }, 'Last Signal v' + DS.VERSION + ' — jeu incrémental de survie spatiale. La partie est enregistrée dans ce navigateur, et sur votre compte quand c’est possible.'));
     el.append(h('div', { class: 'options' }, panel('cloud', 'Sauvegarde', save, 'hot'), panel('gear', 'Affichage', display), panel('journal', 'Raccourcis clavier', keys), panel('anomaly', 'Zone dangereuse', danger)));
   };
 

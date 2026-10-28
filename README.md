@@ -1,4 +1,4 @@
-# Dernier Signal
+# Last Signal
 
 Un jeu incrémental (clicker) de survie spatiale, entièrement en français, en pixel-art.
 

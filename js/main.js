@@ -1,4 +1,4 @@
-/* Dernier Signal — démarrage, boucle de jeu et sauvegardes. */
+/* Last Signal — démarrage, boucle de jeu et sauvegardes. */
 'use strict';
 (function (DS) {
   const KEY = 'dernier-signal-save';

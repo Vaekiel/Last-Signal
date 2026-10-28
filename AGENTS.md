@@ -4,7 +4,7 @@ Lisez ce fichier en entier avant toute modification du dépôt.
 
 ## Votre mission : les graphismes, et seulement les graphismes
 
-*Dernier Signal* est un jeu incrémental de survie spatiale en français, jouable en ouvrant `index.html`. Les mécaniques sont terminées et équilibrées : règles, chiffres, interface et sauvegarde. **Vous n'y touchez pas.**
+*Last Signal* est un jeu incrémental de survie spatiale en français, jouable en ouvrant `index.html`. Les mécaniques sont terminées et équilibrées : règles, chiffres, interface et sauvegarde. **Vous n'y touchez pas.**
 
 Vous pouvez améliorer :
 

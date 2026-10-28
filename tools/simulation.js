@@ -1,4 +1,4 @@
-/* Simulation d'équilibrage : un joueur automatique joue à Dernier Signal
+/* Simulation d'équilibrage : un joueur automatique joue à Last Signal
    et affiche le temps nécessaire pour atteindre chaque étape.
    Utilisation : node tools/simulation.js [heures] [clics_par_seconde] */
 'use strict';
