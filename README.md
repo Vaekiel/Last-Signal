@@ -89,7 +89,7 @@ node tools/verifier-graphismes.js
 
 Le contrôle échoue si un fichier hors du périmètre graphique a changé, si une icône, une salle ou une fonction attendue a disparu, ou si la simulation d'équilibrage ne donne plus le résultat de référence (`tools/simulation-reference.txt`). Ouvrez ensuite `tools/atelier.html` pour voir le résultat d'un coup d'œil.
 
-Pour relire une branche proposée par l'IA, indiquez la branche dont elle est partie. Tous ses commits sont alors comparés, y compris un éventuel changement d'`AGENTS.md` :
+Pour relire une branche proposée par l'IA, indiquez la branche dont elle est partie. Tous ses commits sont alors comparés. Sans cette précision, le contrôle part de la dernière modification d'un fichier protégé : une IA qui en aurait modifié un et l'aurait déjà commité passerait inaperçue.
 
 ```
 node tools/verifier-graphismes.js origin/claude/dernier-signal

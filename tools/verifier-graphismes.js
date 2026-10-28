@@ -1,6 +1,7 @@
 /* Vérifie qu'une modification ne touche que la partie graphique du jeu.
    Utilisation : node tools/verifier-graphismes.js [référence git]
-   Sans argument, la référence est le dernier commit qui a modifié AGENTS.md. */
+   Sans argument, la référence est le dernier commit qui a modifié un fichier protégé,
+   c'est-à-dire la dernière modification faite par le propriétaire du dépôt. */
 'use strict';
 const { execSync } = require('child_process');
 const fs = require('fs');
@@ -14,15 +15,16 @@ const pass = m => console.log('✓ ' + m);
 const warn = m => console.log('! ' + m);
 
 // ------------------------------------------------------------------ 1. fichiers modifiés
-const ref = process.argv[2] || sh('git log -1 --format=%H -- AGENTS.md') || 'HEAD';
+const PROTECTED = new Set(['js/data.js', 'js/engine.js', 'js/ui.js', 'js/main.js', 'css/style.css', 'index.html',
+  'tools/simulation.js', 'tools/simulation-reference.txt', 'tools/verifier-graphismes.js', 'AGENTS.md', 'README.md']);
+const ref = process.argv[2] || sh('git log -1 --format=%H -- ' + [...PROTECTED].join(' ')) || 'HEAD';
+console.log('Référence : ' + sh('git log -1 --format="%h %s" ' + ref) + '\n');
 const changed = new Set([
   ...sh('git diff --name-only ' + ref).split('\n'),
   ...sh('git ls-files --others --exclude-standard').split('\n')
 ].filter(Boolean));
 
 const ALLOWED = [/^js\/pixelforge\.js$/, /^js\/sprites\.js$/, /^js\/ship\.js$/, /^js\/scene\.js$/, /^assets\/[^/]+\.png$/, /^tools\/atelier\.html$/];
-const PROTECTED = new Set(['js/data.js', 'js/engine.js', 'js/ui.js', 'js/main.js', 'css/style.css', 'index.html',
-  'tools/simulation.js', 'tools/simulation-reference.txt', 'tools/verifier-graphismes.js', 'AGENTS.md', 'README.md']);
 const existedAtRef = f => { try { sh('git cat-file -e ' + ref + ':' + f); return true; } catch (e) { return false; } };
 
 for (const f of changed) {
