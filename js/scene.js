@@ -268,7 +268,7 @@
     ? new URL('../assets/', scriptDecor.src).href : 'assets/';
   const decorCache = {};
   // Cadrage pensé pour le rapport largeur/hauteur réel de la scène du vaisseau.
-  const cadreDepart = { terra: 946, ice: 972, violet: 908, mars: 993, gas: 867, dark: 858 };
+  const cadreDepart = { terra: 900, ice: 972, violet: 908, mars: 993, gas: 867, dark: 858 };
   // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
   const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
     mars: '#35140c', gas: '#092532', dark: '#110c28' };
@@ -301,28 +301,32 @@
 
     function chargerPaire(suffixe, cle, obligatoire) {
       const photos = [];
+      // Hélios : véritable pixel art HD natif ; autres secteurs inchangés.
+      const tuileLargeur = type === 'terra' ? 1440 : 720;
+      const tuileHauteur = type === 'terra' ? 640 : 320;
+      const panoramaLargeur = tuileLargeur * 2;
       let recus = 0;
       for (let i = 1; i <= 2; i++) {
         const photo = new Image();
         photos.push(photo);
         resultat.images.push(photo);
         photo.onload = function () {
-          if (photo.naturalWidth !== 720 || photo.naturalHeight !== 320) {
+          if (photo.naturalWidth !== tuileLargeur || photo.naturalHeight !== tuileHauteur) {
             if (obligatoire) resultat.echec = true;
             return;
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
           // Deux tuiles originales côte à côte pour conserver les détails HD.
-          const panoramique = canvas(1440, 320);
+          const panoramique = canvas(panoramaLargeur, tuileHauteur);
           const ctx = panoramique.getContext('2d');
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(photos[0], 0, 0);
-          ctx.drawImage(photos[1], 720, 0);
+          ctx.drawImage(photos[1], tuileLargeur, 0);
           if (cle === 'canvas') {
             // Fondu court sur le raccord horizontal, sans lecture des pixels.
             for (let x = 0; x < 32; x++) {
               ctx.globalAlpha = (x + 1) / 32;
-              ctx.drawImage(panoramique, x, 0, 1, 320, 1408 + x, 0, 1, 320);
+              ctx.drawImage(panoramique, x, 0, 1, tuileHauteur, panoramaLargeur - 32 + x, 0, 1, tuileHauteur);
             }
             ctx.globalAlpha = 1;
           } else {
@@ -330,8 +334,8 @@
             ctx.globalCompositeOperation = 'destination-out';
             for (let x = 0; x < 20; x++) {
               ctx.fillStyle = 'rgba(0,0,0,' + ((20 - x) / 20).toFixed(3) + ')';
-              ctx.fillRect(x, 0, 1, 320);
-              ctx.fillRect(1439 - x, 0, 1, 320);
+              ctx.fillRect(x, 0, 1, tuileHauteur);
+              ctx.fillRect(panoramaLargeur - 1 - x, 0, 1, tuileHauteur);
             }
             ctx.globalCompositeOperation = 'source-over';
           }
