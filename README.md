@@ -8,9 +8,11 @@ L'esprit s'inspire de [DodecaDragons](https://demonin.com/games/dodecaDragons/) 
 
 ## Jouer
 
-Ouvrez `index.html` dans un navigateur. Il n'y a rien à installer : le jeu tourne hors ligne, mais les polices pixel viennent de Google Fonts.
+Ouvrez `index.html` dans un navigateur. Il n'y a rien à installer : le jeu tourne hors ligne, mais les polices viennent de Google Fonts.
 
 La partie est sauvegardée automatiquement dans le navigateur, toutes les 15 secondes et à la fermeture de l'onglet. Pour changer d'appareil, utilisez l'export et l'import de code dans **Options**.
+
+**Version en ligne** : [claude.ai/artifact/JP1LFmQxu5MXdeWUc2L551](https://claude.ai/artifact/JP1LFmQxu5MXdeWUc2L551). Elle n'est visible que par son propriétaire tant qu'elle n'a pas été partagée depuis le menu Partager. En ligne, la partie est aussi enregistrée sur le compte du joueur, ce qui permet de la reprendre sur un autre appareil.
 
 ### Raccourcis
 
