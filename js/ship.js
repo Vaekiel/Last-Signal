@@ -51,6 +51,11 @@
   DS.makeRamp('solarGold', '#2a1606', '#ffd36a', 6, { amb: 0.3, shiny: 30 });
   DS.makeRamp('organic', '#0a2410', '#b8ff7a', 7, { amb: 0.28, shiny: 34 });
   DS.makeRamp('hullB', '#0c1220', '#6a86a8', 8, { amb: 0.22, shiny: 16 });
+  // Finitions propres à l'ARCHE-09 : acier bleuté, nervures, cuivre et verre.
+  DS.makeRamp('shipRib', '#101827', '#8297b5', 8, { amb: 0.23, shiny: 19 });
+  DS.makeRamp('shipShadow', '#060d19', '#34435c', 6, { amb: 0.25 });
+  DS.makeRamp('shipCopper', '#38190c', '#ffb55b', 8, { amb: 0.24, shiny: 19 });
+  DS.makeRamp('shipGlass', '#081d32', '#a7eaff', 8, { amb: 0.28, shiny: 36 });
 
   function drawRoom(F, x, y, w, h, id, seed) {
     const R = ROOMS[id] || ROOMS.empty;
@@ -208,6 +213,23 @@
         F.cylH(x, y + 6, 12, 3, 'hull'); F.line(x + 12, y + 7, x + 15, y + 10, 'hull');
         F.line(x + 26, y + h - 9, x + 33, y + h - 13, 'hull'); F.line(x + 33, y + h - 13, x + 36, y + h - 9, 'hull');
     }
+    // Moulures des compartiments ; la surface habitable reste inchangée.
+    F.rect(x, y + 1, 2, h - 5, 'shipShadow', { bevel: 0 });
+    F.rect(x + w - 2, y + 1, 2, h - 5, 'shipRib', { bevel: 0, tone: 0.48 });
+    F.line(x + 3, y + h - 5, x + w - 4, y + h - 5, 'shipRib', { tone: 0.42 });
+    for (let i = 5; i < w - 4; i += 7) {
+      F.px(x + i, y + h - 3, 'steel', 0.42);
+      F.px(x + i + 1, y + h - 3, 'dark', 0.12);
+    }
+    if (lamp) {
+      // Rampe lumineuse, boîtiers de sécurité et câble de ventilation.
+      F.rect(x + 5, y + 2, 7, 2, 'shipRib', { bevel: 0, tone: 0.8 });
+      F.px(x + 6, y + 2, R.glow, 0.94);
+      F.px(x + 10, y + 2, 'white', 0.85);
+      F.rect(x + w - 6, y + 3, 3, 5, 'shipShadow', { bevel: 0 });
+      F.px(x + w - 5, y + 4, R.glow, 0.95);
+      F.px(x + w - 5, y + 6, 'glowC', 0.5);
+    }
   }
   DS.drawRoom = drawRoom;
   DS.roomURL = (function () {
@@ -278,6 +300,17 @@
       else if (d < 0.5 && o.stripes && pw > 10) for (let k = 0; k < pw - 4; k += 2) F.px(x + 2 + k, y0 + h - 3, (k >> 1) % 2 ? 'gold' : 'dark', (k >> 1) % 2 ? 0.75 : 0.1);
       else if (d < 0.65) { F.px(x + 2, y0 + 2, 'steel', 0.85); F.px(x + pw - 3, y0 + 2, 'steel', 0.85); F.px(x + 2, y0 + h - 3, 'steel', 0.6); F.px(x + pw - 3, y0 + h - 3, 'steel', 0.6); }
       else if (d < 0.75 && pw > 12 && h >= 9) text(F, String((r() * 90 + 10) | 0), x + 4, y0 + 2, 'white', 0.45);
+      // Rivets jumelés, surlignage de lumière et joints bleu-noir.
+      if (pw > 7 && h >= 5) {
+        F.px(x + 3, y0 + 1, 'shipRib', 0.92);
+        F.px(x + 4, y0 + 2, 'shipShadow', 0.12);
+        F.px(x + pw - 4, y0 + h - 2, 'shipRib', 0.6);
+        F.px(x + pw - 3, y0 + h - 2, 'dark', 0.08);
+        if (pw > 18) {
+          F.line(x + 7, y0 + 1, x + pw - 8, y0 + 1, 'shipRib', { tone: 0.45 });
+          F.line(x + 6, y0 + h - 2, x + pw - 7, y0 + h - 2, 'shipShadow', { tone: 0.25 });
+        }
+      }
       x += pw;
     }
   }
@@ -338,7 +371,10 @@
       for (let j = 0; j < ncy; j++) for (let i = 0; i < ncx; i++) {
         const sx = px0 + i * 5 + 1 + sk * (1 - (j + 0.5) / ncy), sy = py0 + 1 + j * (ph / ncy);
         F.rect(Math.round(sx), Math.round(sy), 4, Math.max(2, Math.round(ph / ncy) - 1), 'solar', { bevel: 0, normal: [-0.2, -0.7, 0.7], shift: (i + j * 2) % 5 === 0 ? 1 : 0 });
+        F.px(Math.round(sx), Math.round(sy), (i + j) % 3 ? 'shipGlass' : 'white', 0.65);
       }
+      F.line(px0 + sk, py0, px0 + pw + sk - 1, py0, frame, { tone: 0.87 });
+      F.line(x + 13, base - mh, x + 13, base - 5, 'shipShadow', { tone: 0.2 });
       return big ? 34 : 28;
     },
     cargo(F, x, base, r) {
@@ -367,6 +403,7 @@
       F.shape(x + 1, base - 18, x + 27, base - 2, (a, b) => Math.hypot((a - x - 14) / 13, (b - (base - 3)) / 14) <= 1, 'glass', { round: 3 });
       for (let k = 0; k < 4; k++) F.ellipse(x + 6 + k * 5.5, base - 6, 2.8, 3, 'leaf');
       for (let k = 0; k < 3; k++) F.ellipse(x + 9 + k * 5, base - 10, 2.5, 2.5, 'leaf');
+      for (let k = 0; k < 5; k++) F.px(x + 5 + k * 5, base - 6 - (k % 3) * 2, 'glowG', 0.7);
       for (const dx of [7, 14, 21]) F.line(x + dx, base - 3, x + dx + (dx - 14) * 0.15, base - 16, 'steel', { tone: 0.75 });
       A.glowG.push([x + 14, base - 8]);
       return 28;
@@ -501,6 +538,60 @@
     }
   };
 
+  // Finition à résolution native 2× : chaque rivet et reflet tient un pixel
+  // physique, au lieu d'être seulement doublé lors du rendu de la scène.
+  function finitionHD(source, bx, by, bodyW, bodyH, salles, moteurs) {
+    if (typeof document === 'undefined') return null;
+    const c = document.createElement('canvas');
+    c.width = source.width * 2;
+    c.height = source.height * 2;
+    const ctx = c.getContext('2d');
+    if (!ctx) return null;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(source, 0, 0, c.width, c.height);
+    const p = (x, y, w, h, couleur) => {
+      ctx.fillStyle = couleur;
+      ctx.fillRect(Math.round(x * 2), Math.round(y * 2), w, h);
+    };
+    const bd = bx + 1, haut = by + 1;
+    // Filets lumineux et doubles rivets sur les bordures métalliques.
+    for (const bord of [haut + 2, haut + bodyH - 8]) {
+      for (let x = bd + 8; x < bd + bodyW - 8; x += 9) {
+        p(x, bord, 2, 1, '#afc7e3');
+        p(x + 0.5, bord + 1, 1, 1, '#182238');
+        if (x % 3 === 0) p(x + 3, bord + 2, 1, 1, '#e7a354');
+      }
+    }
+    // Pattes et angles finement usinés autour de chaque module.
+    for (const rm of salles) {
+      const x = rm.x + 1, y = rm.y + 1;
+      for (const dy of [0, rm.h - 2]) for (const dx of [0, rm.w - 2]) {
+        p(x + dx, y + dy, 3, 1, '#c3d3e9');
+        p(x + dx, y + dy + 0.5, 1, 3, '#40536d');
+      }
+      if (rm.id !== 'empty') {
+        // Condensateurs et diode de contrôle, dans le cadre et non la salle.
+        p(x + 5, y + 1, 7, 1, '#dceefa');
+        p(x + rm.w - 6, y + 2, 2, 2, '#ff9a2e');
+        p(x + rm.w - 8, y + rm.h - 2, 6, 1, '#62b8f0');
+      }
+    }
+    // Bagues chromées des trois moteurs : traces très fines au pixel physique.
+    for (const e of moteurs) {
+      for (let k = 0; k < 3; k++) {
+        const yy = e.y + (k - 1) * Math.max(1, e.h / 4);
+        p(e.x + 14, yy, 9, 1, k === 1 ? '#b5dcff' : '#456481');
+      }
+    }
+    // Reflets sous-pixelliques sur la verrière, sans masquer la proue.
+    const proue = bd + bodyW;
+    for (let k = 0; k < 12; k++) {
+      const x = proue + 10 + k * 3, y = haut + 14 + Math.floor(k / 5);
+      p(x, y, 2, 1, k % 3 === 0 ? '#d6faff' : '#60b5e5');
+    }
+    return c;
+  }
+
   // ------------------------------------------------------------------ assemblage
   DS.buildShip = function (spec) {
     const n = Math.max(8, spec.rooms.length + (spec.rooms.length % 2));
@@ -597,11 +688,19 @@
     nac.forEach(([i, eh], k) => {
       const ey = Math.round(ys[k]), x0 = 12, len = bx - 40;
       F.cylH(x0, ey, len, eh, 'steel');
-      for (const rx of [x0 + 4, x0 + 12, x0 + len - 6]) F.cylH(rx, ey - 1, 3, eh + 2, 'hull');
+      F.cylH(x0 + 5, ey + 3, len - 9, 3, 'shipRib', { tone: 0.64 });
+      F.cylH(x0 + 8, ey + eh - 5, len - 13, 2, 'shipShadow', { tone: 0.22 });
+      for (const rx of [x0 + 4, x0 + 12, x0 + len - 6]) {
+        F.cylH(rx, ey - 1, 3, eh + 2, 'hull');
+        F.px(rx + 1, ey, 'shipRib', 0.78);
+      }
       F.cylH(x0 + len, ey + 2, 8, eh - 4, 'hull');
       F.poly([[2, ey - 3], [14, ey + 1], [14, ey + eh - 1], [2, ey + eh + 3]], 'hull', { bevel: 1.5 });
       F.ellipse(3.5, ey + eh / 2, 2.2, eh / 2 - 1, i === 1 && spec.fusion ? 'glowY' : 'glowC');
       F.rect(x0 + 6, ey + 3, 3, 2, 'glowO', { bevel: 0 });
+      F.rect(x0 + 17, ey + 2, 6, 2, 'shipCopper', { bevel: 0, tone: 0.74 });
+      F.px(x0 + 19, ey + 2, 'glowC', 0.85);
+      F.line(x0 + 18, ey + eh - 3, x0 + len - 3, ey + eh - 3, 'shipShadow', { tone: 0.16 });
       engines.push({ x: 2, y: ey + eh / 2, h: eh + 2, hot: i === 1 && spec.fusion });
     });
     for (let k = 0; k < spec.batteries; k++) {
@@ -631,6 +730,13 @@
       F.px(wx + 1, roomsY + WALL + RH + 1, 'steel', 0.7);
     }
     F.rect(bx + 2, roomsY + WALL + RH, bodyW - 4, WALL, 'hull', { bevel: 1 });
+    // Deux rails en acier séparent clairement les salles et portent des rivets.
+    for (let k = bx + 8; k < bx + bodyW - 5; k += 11) {
+      F.px(k, roomsY + WALL + RH + 1, 'shipRib', 0.88);
+      F.px(k + 1, roomsY + WALL + RH + 2, 'shipShadow', 0.12);
+    }
+    F.line(bx + 3, roomsY + WALL + RH + 1,
+      bx + bodyW - 4, roomsY + WALL + RH + 1, 'shipRib', { tone: 0.57 });
     if (spec.armor) {
       for (let k = bx + 2; k < bx + bodyW - 20; k += 34) {
         F.rect(k, by - 2, 30, 6, 'steel', { bevel: 2 });
@@ -645,7 +751,11 @@
       A.plasma.push({ x0: bx + 4, x1: bx + bodyW - 4, y: by + BAND - 2 }, { x0: bx + 4, x1: bx + bodyW - 4, y: by + bodyH - BAND + 1 });
     }
     F.cylH(bx + 4, by + 1, bodyW - 8, 3, 'steel');
-    for (let k = bx + 14; k < bx + bodyW - 8; k += 22) F.cylH(k, by, 3, 5, 'hull');
+    F.line(bx + 8, by + 1, bx + bodyW - 11, by + 1, 'shipRib', { tone: 0.82 });
+    for (let k = bx + 14; k < bx + bodyW - 8; k += 22) {
+      F.cylH(k, by, 3, 5, 'hull');
+      F.px(k + 1, by, 'shipCopper', 0.77);
+    }
     for (let k = bx + 30; k < bx + bodyW - 20; k += 26) { F.ellipse(k, by + bodyH - BAND / 2, 2, 2, 'steel'); F.ellipse(k, by + bodyH - BAND / 2, 1.2, 1.2, 'glowC'); }
     // aileron et épaulement de poupe
     F.poly([[bx - 30, by + 9], [bx - 22, by - 20], [bx - 12, by - 20], [bx - 2, by + 9]], 'hullB', { bevel: 2 });
@@ -712,10 +822,24 @@
     }, 'glass', { round: 5 });
     for (const k of [16, 26, 36]) F.line(nx0 + k, by + 12 + (k - 16) * 0.25, nx0 + k - 2, by + 28, 'steel', { tone: 0.55 });
     F.line(nx0 + 12, by + 22, nx0 + 22, by + 15, 'white', { tone: 0.95 });
+    // Cockpit polygonal : montants, verrière stratifiée et consoles éclairées.
+    F.line(nx0 + 10, by + 17, nx0 + 42, by + 15, 'shipGlass', { tone: 0.89 });
+    F.line(nx0 + 11, by + 20, nx0 + 37, by + 20, 'glowC', { tone: 0.72 });
+    F.line(nx0 + 44, by + 12, nx0 + 38, by + 31, 'shipRib', { tone: 0.78 });
+    F.line(nx0 + 29, by + 12, nx0 + 27, by + 31, 'shipRib', { tone: 0.62 });
+    F.rect(nx0 + 12, by + 27, 22, 2, 'shipShadow', { bevel: 0 });
+    for (let k = 0; k < 5; k++) F.px(nx0 + 13 + k * 4, by + 27, k % 2 ? 'glowC' : 'glowO', 0.88);
     for (let k = 0; k < 4; k++) F.line(nx0 + 8 + k * 14, by + bodyH * 0.45 + k * 2, nx0 + 12 + k * 14, by + bodyH * 0.8 - k * 3, 'hull', { shift: -1 });
     for (let k = 0; k < 6; k++) F.px(nx0 + 10 + k * 9, by + bodyH * 0.55 + k * 0.6, 'steel', 0.85);
     // marques des sauts
     for (let k = 0; k < spec.jumps; k++) F.rect(nx0 + 8 + k * 4, Math.round(by + bodyH * 0.42), 2, 5, spec.emissions && k < spec.emissions * 6 ? 'gold' : 'white', { bevel: 0, tone: 0.75 });
+    // Nervures et facettes de proue, lisibles même sur fond très lumineux.
+    F.line(nx0 + 8, by + bodyH * 0.74, nx0 + 55, by + bodyH * 0.68, 'shipShadow', { tone: 0.18 });
+    F.line(nx0 + 7, by + bodyH * 0.7, nx0 + 51, by + bodyH * 0.65, 'shipRib', { tone: 0.53 });
+    for (let k = 0; k < 7; k++) {
+      const xx = nx0 + 10 + k * 8, yy = Math.round(by + bodyH * (0.78 - k * 0.011));
+      F.px(xx, yy, 'shipRib', 0.66); F.px(xx + 1, yy + 1, 'shipShadow', 0.12);
+    }
     F.ellipse(nx0 + NL - 12, by + bodyH * 0.56, 2.6, 2.6, 'glowC');
     A.blink.push({ x: nx0 + NL - 12, y: Math.round(by + bodyH * 0.56), c: '#bff4ff', steady: true });
     A.blink.push({ x: nx0 + 30, y: by + 6, c: '#ff4d5e' }, { x: nx0 + 30, y: by + bodyH - 6, c: '#5aff8a' });
@@ -750,11 +874,12 @@
     for (const [lx, ly] of A.lights) F.px(lx, ly, 'glowO', 0.9);
 
     const cv = F.render();
+    const cvHD = finitionHD(cv, bx, by, bodyW, bodyH, roomRects, engines);
     const P = 1, sh = (o) => o && Object.assign({}, o, { x: o.x + P, y: o.y + P });
     const blink = A.blink.map((l, i) => Object.assign({}, l, { x: l.x + P, y: l.y + P, p: (i * 1.7) % 6.28 }));
     for (let i = 0; i < A.lights.length; i += 3) blink.push({ x: A.lights[i][0] + P, y: A.lights[i][1] + P, c: '#ff9a2e', p: i * 0.3 });
     return {
-      canvas: cv, W: W + 2, H: H + 2, bx: bx + P, by: by + P, bodyW, bodyH,
+      canvas: cv, canvasHD: cvHD, W: W + 2, H: H + 2, bx: bx + P, by: by + P, bodyW, bodyH,
       engines: engines.map(e => Object.assign({}, e, { x: e.x + P, y: e.y + P })),
       lights: blink, rooms: roomRects.map(rm => Object.assign({}, rm, { y: rm.y })), flick,
       fx: {
