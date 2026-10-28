@@ -1,4 +1,4 @@
-/* Dernier Signal — moteur de pixel-art ombré.
+/* Last Signal — moteur de pixel-art ombré.
    Les formes sont posées avec un relief (biseau, arrondi, sphère, cylindre, facette),
    puis ombrées sur des dégradés de couleurs limités, avec tramage, ombre de contact,
    lumière de bord et contour sélectif. */

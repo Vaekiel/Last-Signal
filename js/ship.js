@@ -1,4 +1,4 @@
-/* Dernier Signal — le vaisseau ARCHE-09 : construit pièce par pièce selon les modules,
+/* Last Signal — le vaisseau ARCHE-09 : construit pièce par pièce selon les modules,
    recherches et archives acquises, puis animé (drones, foreuse, fumées, anneau de saut…). */
 'use strict';
 (function (DS) {

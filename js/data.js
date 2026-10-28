@@ -1,4 +1,4 @@
-/* Dernier Signal — contenu du jeu (ressources, modules, recherches, etc.).
+/* Last Signal — contenu du jeu (ressources, modules, recherches, etc.).
    Tout l'équilibrage chiffré se trouve dans ce fichier. */
 'use strict';
 (function (DS) {

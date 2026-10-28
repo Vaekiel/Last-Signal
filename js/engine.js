@@ -1,4 +1,4 @@
-/* Dernier Signal — moteur de jeu (aucune dépendance au DOM). */
+/* Last Signal — moteur de jeu (aucune dépendance au DOM). */
 'use strict';
 (function (DS) {
   const RO = DS.RES_ORDER;

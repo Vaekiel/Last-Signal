@@ -1,4 +1,4 @@
-/* Dernier Signal — icônes pixel-art 32×32, construites en volumes puis ombrées par DS.Forge. */
+/* Last Signal — icônes pixel-art 32×32, construites en volumes puis ombrées par DS.Forge. */
 'use strict';
 (function (DS) {
   const segDist = (x, y, ax, ay, bx, by) => {

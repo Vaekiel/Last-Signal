@@ -1,4 +1,4 @@
-/* Dernier Signal — interface pixel-art.
+/* Last Signal — interface pixel-art.
    Mise en page : barre latérale | écran principal | colonne d'état, sous une barre de ressources. */
 :root {
   color-scheme: dark;
@@ -21,7 +21,7 @@
   --red-2: #b8233a;
   --violet: #b67bff;
   --gold: #ffd23a;
-  --font-px: 'Pixelify Sans', 'Courier New', monospace;
+  --font-px: 'Tektur', 'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
   --font-ui: 'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
   --gap: 14px;
   --radius: 5px;

@@ -1,4 +1,4 @@
-/* Dernier Signal — rendu pixel-art sur canvas : fonds de secteur en parallaxe, planètes, scène, Spécimen.
+/* Last Signal — rendu pixel-art sur canvas : fonds de secteur en parallaxe, planètes, scène, Spécimen.
    Le vaisseau lui-même est construit dans ship.js. */
 'use strict';
 (function (DS) {
