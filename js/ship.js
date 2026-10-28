@@ -574,6 +574,28 @@
         p(x + 5, y + 1, 7, 1, '#dceefa');
         p(x + rm.w - 6, y + 2, 2, 2, '#ff9a2e');
         p(x + rm.w - 8, y + rm.h - 2, 6, 1, '#62b8f0');
+        // Détails propres à la fonction de chaque salle, à l'échelle HD.
+        if (rm.id === 'lab' || rm.id === 'array' || rm.id === 'quantum') {
+          for (let k = 0; k < 5; k++) {
+            p(x + 7 + k * 6, y + 11 + (k % 3), 4, 1,
+              k % 2 ? '#9fe8ff' : '#3089be');
+          }
+        } else if (rm.id === 'greenhouse' || rm.id === 'biodome') {
+          for (let k = 0; k < 6; k++) {
+            p(x + 5 + k * 6, y + 13 - (k % 3), 2, 2, '#b7ff80');
+            p(x + 6 + k * 6, y + 15, 1, 2, '#477b35');
+          }
+        } else if (rm.id === 'oxygen' || rm.id === 'cryo' || rm.id === 'ice') {
+          for (let k = 0; k < 3; k++) {
+            p(x + 7 + k * 13, y + 7, 2, 5, '#d7fcff');
+            p(x + 9 + k * 13, y + 8, 1, 5, '#449ac7');
+          }
+        } else if (rm.id === 'solar' || rm.id === 'fusion' || rm.id === 'foundry') {
+          for (let k = 0; k < 7; k++) {
+            p(x + 8 + k * 4, y + 20, 1, 3,
+              k % 2 ? '#ff9a2e' : '#ffdb79');
+          }
+        }
       }
     }
     // Bagues chromées des trois moteurs : traces très fines au pixel physique.
@@ -582,6 +604,11 @@
         const yy = e.y + (k - 1) * Math.max(1, e.h / 4);
         p(e.x + 14, yy, 9, 1, k === 1 ? '#b5dcff' : '#456481');
       }
+    }
+    // Mécanismes et prises de maintenance sur le caisson de poupe.
+    for (let k = 0; k < 8; k++) {
+      p(bd - 21 + (k % 4) * 4, haut + 24 + Math.floor(k / 4) * 32,
+        3, 2, k % 3 === 0 ? '#ffba61' : '#7296b8');
     }
     // Reflets sous-pixelliques sur la verrière, sans masquer la proue.
     const proue = bd + bodyW;
