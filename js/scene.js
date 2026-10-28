@@ -268,7 +268,7 @@
     ? new URL('../assets/', scriptDecor.src).href : 'assets/';
   const decorCache = {};
   // Cadrage pensé pour le rapport largeur/hauteur réel de la scène du vaisseau.
-  const cadreDepart = { terra: 900, ice: 972, violet: 908, mars: 993, gas: 867, dark: 858 };
+  const cadreDepart = { terra: 900, ice: 880, violet: 845, mars: 845, gas: 880, dark: 870 };
   // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
   const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
     mars: '#35140c', gas: '#092532', dark: '#110c28' };
@@ -301,9 +301,9 @@
 
     function chargerPaire(suffixe, cle, obligatoire) {
       const photos = [];
-      // Hélios : véritable pixel art HD natif ; autres secteurs inchangés.
-      const tuileLargeur = type === 'terra' ? 1440 : 720;
-      const tuileHauteur = type === 'terra' ? 640 : 320;
+      // Tous les secteurs sont peints en HD natif, 2 × 1440 × 640 pixels.
+      const tuileLargeur = 1440;
+      const tuileHauteur = 640;
       const panoramaLargeur = tuileLargeur * 2;
       let recus = 0;
       for (let i = 1; i <= 2; i++) {
