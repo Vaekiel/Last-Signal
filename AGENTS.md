@@ -38,7 +38,10 @@ Si une demande vous oblige à sortir de ce périmètre, par exemple changer un c
 | `js/ui.js`, `css/style.css`, `index.html` | Interface et mise en page. Seule exception pour `index.html` : ajouter une ligne `<script>` pour un nouveau fichier graphique |
 | `js/main.js` | Démarrage, boucle de jeu, sauvegardes |
 | `tools/simulation.js`, `tools/simulation-reference.txt`, `tools/verifier-graphismes.js` | Garde-fous de l'équilibrage |
-| `AGENTS.md`, `README.md` | Documentation tenue par le propriétaire |
+| `tools/build.js`, `package.json`, `package-lock.json` | Outils de build de distribution (côté propriétaire) |
+| `AGENTS.md`, `README.md`, `LICENSE`, `.gitignore` | Documentation et configuration tenues par le propriétaire |
+
+Les dossiers `dist/` (sortie du build) et `node_modules/` (dépendances de build) sont générés, jamais versionnés : ne les touchez pas. La partie **source** du jeu reste sans dépendance et jouable en ouvrant `index.html` : l'interdiction d'outil de build ci-dessous s'applique à cette source, pas au build de distribution du propriétaire.
 
 Interdits généraux :
 
