@@ -14,7 +14,7 @@ Ouvrez `index.html` dans un navigateur. Il n'y a rien à installer : le jeu tour
 
 La partie est sauvegardée automatiquement dans le navigateur, toutes les 15 secondes et à la fermeture de l'onglet. Pour changer d'appareil, utilisez l'export et l'import de code dans **Options**.
 
-**Version en ligne** : [claude.ai/artifact/JP1LFmQxu5MXdeWUc2L551](https://claude.ai/artifact/JP1LFmQxu5MXdeWUc2L551). Elle n'est visible que par son propriétaire tant qu'elle n'a pas été partagée depuis le menu Partager. En ligne, la partie est aussi enregistrée sur le compte du joueur, ce qui permet de la reprendre sur un autre appareil.
+**Jouer en ligne** : [vaekiel.github.io/Clicker](https://vaekiel.github.io/Clicker/) — hébergé par GitHub Pages, déployé automatiquement à chaque mise à jour de `main`. La partie est enregistrée dans le navigateur.
 
 ### Raccourcis
 
@@ -46,7 +46,7 @@ La partie est sauvegardée automatiquement dans le navigateur, toutes les 15 sec
 
 **Le vaisseau évolue.** L'ARCHE-09 se transforme avec vos achats. Ailes solaires, réservoirs, serres et dômes, observatoires, parabole, cheminées de fonderie, foreuse de proue, mâchoires de moissonneuse, nacelle à fusion, anneau de saut, hangars d'où partent les sondes, bras robotisés, blindage et tourelles, pylône du Signal, cocon du Spécimen, bouclier de phase et drones en orbite apparaissent au fil des modules, des recherches et des archives. Chaque saut ajoute une encoche sur la proue.
 
-**Secteurs.** Chaque secteur a son fond animé : nébuleuse violette d'Hélios, éclats de glace de la Nébuleuse de Verre, satellites des Veilleurs, épaves d'Orion, éclairs de Triskel, porte annulaire et monolithes de la Porte du Silence.
+**Secteurs.** Chaque secteur a son fond peint : ciel orangé de la Ceinture d'Hélios, éclats de glace de la Nébuleuse de Verre, satellites des Veilleurs, épaves d'Orion, éclairs de Triskel, porte annulaire et monolithes de la Porte du Silence.
 
 **Transmissions.** Des événements à choix arrivent dans la messagerie (icône d'enveloppe) et disparaissent au bout de 2 min 30 s.
 
