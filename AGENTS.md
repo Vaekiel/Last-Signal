@@ -40,6 +40,7 @@ Si une demande vous oblige à sortir de ce périmètre, par exemple changer un c
 | `tools/simulation.js`, `tools/simulation-reference.txt`, `tools/verifier-graphismes.js` | Garde-fous de l'équilibrage |
 | `tools/build.js`, `package.json`, `package-lock.json` | Outils de build de distribution (côté propriétaire) |
 | `AGENTS.md`, `README.md`, `LICENSE`, `.gitignore` | Documentation et configuration tenues par le propriétaire |
+| `.github/workflows/*` | Intégration continue et déploiement (GitHub Actions) |
 
 Les dossiers `dist/` (sortie du build) et `node_modules/` (dépendances de build) sont générés, jamais versionnés : ne les touchez pas. La partie **source** du jeu reste sans dépendance et jouable en ouvrant `index.html` : l'interdiction d'outil de build ci-dessous s'applique à cette source, pas au build de distribution du propriétaire.
 
