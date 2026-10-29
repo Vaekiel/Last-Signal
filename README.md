@@ -97,15 +97,13 @@ node tools/verifier-graphismes.js
 
 Le contrôle échoue si un fichier hors du périmètre graphique a changé, si une icône, une salle ou une fonction attendue a disparu, ou si la simulation d'équilibrage ne donne plus le résultat de référence (`tools/simulation-reference.txt`). Ouvrez ensuite `tools/atelier.html` pour voir le résultat d'un coup d'œil.
 
-Pour relire une branche proposée par l'IA, indiquez la branche dont elle est partie. Tous ses commits sont alors comparés. Sans cette précision, le contrôle part de la dernière modification d'un fichier protégé : une IA qui en aurait modifié un et l'aurait déjà commité passerait inaperçue.
+Pour relire une branche proposée par l'IA, comparez-la à `main`. Tous ses commits sont alors contrôlés d'un coup :
 
 ```
-node tools/verifier-graphismes.js origin/claude/dernier-signal
+node tools/verifier-graphismes.js origin/main
 ```
 
-Remplacez par `origin/main` une fois le jeu fusionné dans `main`.
-
-Ce contrôle aide à repérer les écarts, mais ne remplace pas un coup d'œil à la liste des fichiers modifiés dans la pull request.
+Sans argument, le contrôle part de la dernière modification d'un fichier protégé : une IA qui en aurait modifié un et l'aurait déjà commité passerait inaperçue. La comparaison à `main` évite ce piège. Ce même contrôle tourne automatiquement sur chaque pull request (voir `.github/workflows/graphismes.yml`), mais il ne remplace pas un coup d'œil à la liste des fichiers modifiés.
 
 Si vous modifiez vous-même l'équilibrage, régénérez la référence :
 
