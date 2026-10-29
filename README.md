@@ -14,7 +14,7 @@ Ouvrez `index.html` dans un navigateur. Il n'y a rien à installer : le jeu tour
 
 La partie est sauvegardée automatiquement dans le navigateur, toutes les 15 secondes et à la fermeture de l'onglet. Pour changer d'appareil, utilisez l'export et l'import de code dans **Options**.
 
-**Jouer en ligne** : [vaekiel.github.io/Clicker](https://vaekiel.github.io/Clicker/) — hébergé par GitHub Pages, déployé automatiquement à chaque mise à jour de `main`. La partie est enregistrée dans le navigateur.
+**Jouer en ligne** : [vaekiel.github.io/Last-Signal](https://vaekiel.github.io/Last-Signal/) — hébergé par GitHub Pages, déployé automatiquement à chaque mise à jour de `main`. La partie est enregistrée dans le navigateur.
 
 ### Raccourcis
 
