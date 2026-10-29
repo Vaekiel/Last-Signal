@@ -1,0 +1,13 @@
+# Dépendances et sorties de build (jamais versionnées)
+node_modules/
+dist/
+*.zip
+
+# Journaux et fichiers système
+*.log
+.DS_Store
+Thumbs.db
+
+# Dossiers d'éditeurs
+.vscode/
+.idea/

@@ -1,0 +1,31 @@
+# Contrôle automatique : une pull request ne doit toucher que les graphismes,
+# et ne jamais faire dévier l'équilibrage. Voir AGENTS.md et
+# tools/verifier-graphismes.js.
+name: Contrôle des graphismes
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Récupérer main pour la comparaison
+        run: git fetch origin main
+      - name: Vérifier le périmètre graphique et l'équilibrage
+        run: |
+          if git cat-file -e origin/main:js/data.js 2>/dev/null; then
+            node tools/verifier-graphismes.js origin/main
+          else
+            echo "main ne contient pas encore le jeu : contrôle ignoré (import initial)."
+          fi

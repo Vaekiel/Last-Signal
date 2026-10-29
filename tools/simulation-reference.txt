@@ -1,0 +1,34 @@
+[         1 s] Objectif : Récupérer des débris
+[         1 s] Objectif : Installer un réacteur solaire
+[         2 s] Objectif : Installer un drone récupérateur
+[         3 s] Objectif : Installer un collecteur de glace
+[        10 s] Objectif : Installer un condenseur d’oxygène
+[        31 s] Objectif : Installer une serre hydroponique
+[        31 s] Objectif : Scanner le secteur
+[        31 s] Objectif : Rechercher les gants magnétiques
+[  1 min 38 s] Objectif : Construire un laboratoire
+[  1 min 38 s] Objectif : Posséder 10 drones
+[  1 min 41 s] Objectif : Maîtriser la cryogénie
+[  1 min 41 s] Objectif : Affecter un membre d’équipage
+[  2 min 40 s] Objectif : Remettre le hangar en état
+[  8 min 40 s] Objectif : Réussir une expédition
+[  8 min 40 s] Objectif : Produire des alliages
+[  9 min 52 s] SAUT → secteur 2 (+2 échos, total 2) | cycle 9 min 52 s, métal 417 k, 1,04 k/s, données 74,8/s, alliages 11,2/s, 23 rech.
+[  9 min 52 s] Objectif : Cartographier l’hyperespace
+[  9 min 52 s] Objectif : Effectuer un saut hyperspatial
+[  9 min 52 s] Objectif : Acheter une archive
+[ 14 min 27 s] Objectif : Nourrir le Spécimen
+[ 14 min 37 s] SAUT → secteur 3 (+3 échos, total 6) | cycle 4 min 46 s, métal 332 k, 1,49 k/s, données 62,2/s, alliages 7,28/s, 20 rech.
+[ 14 min 37 s] Objectif : Atteindre le secteur 3
+[ 18 min 38 s] SAUT → secteur 4 (+9 échos, total 16) | cycle 4 min 01 s, métal 18,9 M, 122 k/s, données 2,3 k/s, alliages 173/s, 35 rech.
+[ 18 min 38 s] Anomalie : Nuit noire
+[ 24 min 30 s] Objectif : Stabiliser une anomalie
+[ 25 min 19 s] SAUT → secteur 5 (+13 échos, total 29) | cycle 6 min 41 s, métal 37,1 M, 506 k/s, données 1,95 k/s, alliages 297/s, 34 rech.
+[ 25 min 19 s] Anomalie : Équipage fantôme
+   · 30 min 00 s | secteur 5 | métal 7,04 k (371/s) | données 10,8 k | alliages 17,1 | échos 30 | spécimen 9 | équipage 1 | anomalies 1 | frag 0 | gain saut 0
+[ 40 min 25 s] SAUT → secteur 6 (+24 échos, total 54) | cycle 15 min 07 s, métal 210 M, 9,56 M/s, données 74 k/s, alliages 8,58 k/s, 40 rech.
+[ 40 min 25 s] Objectif : Atteindre la Porte du Silence
+[ 40 min 26 s] Anomalie : Coque percée
+
+Pertes d’équipage : 0 | brèches : 0 | transmissions : 35 | expéditions : 11
+Recherches possédées : 20 | modules : {"solar":46,"drone":45,"collector":40,"condenser":31,"greenhouse":29,"battery":17,"lab":20,"extractor":15,"foundry":10,"cryo":1,"nanites":5,"array":3}
