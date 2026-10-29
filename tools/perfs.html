@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mesures de performance — Last Signal</title>
+<style>
+  :root { color-scheme: dark; --bg: #050914; --panel: #0c1628; --edge: #1f355a; --ink: #e8f1ff; --ink-2: #9fb3cf; --ok: #4fd67a; --bad: #ff5a68; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, sans-serif; padding: 20px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--ink-2); max-width: 70ch; }
+  button { font: 600 14px system-ui; color: #021018; background: #46d8ff; border: 0; border-radius: 4px; padding: 8px 16px; cursor: pointer; }
+  table { border-collapse: collapse; margin-top: 16px; width: 100%; max-width: 720px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--edge); }
+  th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); background: var(--panel); }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .env { color: var(--ink-2); font-size: 12px; margin-top: 10px; }
+  #state { margin-top: 12px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<h1>Mesures de performance — Last Signal</h1>
+<p>Chronomètre les trois budgets graphiques fixés dans <code>AGENTS.md</code>, une fois les images chargées. Ouvrez cette page dans un navigateur (desktop ou mobile) et cliquez sur « Mesurer ». Les chiffres dépendent de la machine : comparez des rendus sur le même appareil.</p>
+<button id="run" type="button">Mesurer</button>
+<div id="state"></div>
+<table id="out" hidden>
+  <thead><tr><th>Mesure</th><th class="num">Résultat</th><th class="num">Budget</th><th>Verdict</th></tr></thead>
+  <tbody></tbody>
+</table>
+<div class="env" id="env"></div>
+
+<script src="../js/data.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/pixelforge.js"></script>
+<script src="../js/sprites.js"></script>
+<script src="../js/ship.js"></script>
+<script src="../js/scene.js"></script>
+<script>
+'use strict';
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const median = a => { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
+
+function lateState(sector) {
+  const s = DS.newState();
+  s.sector = sector || 0;
+  s.mods = { solar: 30, drone: 60, collector: 22, condenser: 12, greenhouse: 12, battery: 12, lab: 22, extractor: 20, foundry: 16, cryo: 3, nanites: 5, array: 8, fusion: 6, harvester: 8, biodome: 4, quantum: 4, plasma: 3 };
+  Object.assign(s.research, { photo: 1, logistics: 1, longrange: 1, cryogenics: 1, hangar: 1, hangar2: 1, hangar3: 1, armor: 1, robotArm: 1, robotArm2: 1, navigation: 1, singularity: 1, antenna: 1 });
+  s.signal.antenna = 3; s.specimen.found = true; s.specimen.level = 26; s.archives.shield = 3; s.jumps = 6; s.crew.total = 12;
+  return s;
+}
+
+function timeIt(fn, iter) { const t = performance.now(); for (let i = 0; i < iter; i++) fn(); return (performance.now() - t) / iter; }
+
+async function measure() {
+  const rows = [];
+  const add = (label, value, unit, budget) => rows.push({ label, value, unit, budget });
+
+  // 1. DS.buildShip — début et fin de partie.
+  add('DS.buildShip — début de partie', timeIt(() => DS.buildShip(DS.shipSpec(DS.newState())), 20), 'ms', 100);
+  const lateSpec = DS.shipSpec(lateState(0));
+  add('DS.buildShip — fin de partie', timeIt(() => DS.buildShip(lateSpec), 20), 'ms', 100);
+
+  // 2. Génération d'un fond (coût synchrone d'un changement de secteur) + 3. Scene.frame par secteur.
+  const cv = document.createElement('canvas');
+  const sc = new DS.Scene(cv);
+  for (let sec = 0; sec < 6; sec++) {
+    const s = lateState(sec);
+    const name = DS.sector(sec).name;
+    document.getElementById('state').textContent = 'Mesure du secteur ' + (sec + 1) + '/6 (' + name + ')…';
+
+    const tBg = performance.now();
+    sc.setState(s);                 // déclenche buildBackground pour ce secteur
+    const bgMs = performance.now() - tBg;
+    if (sec === 0) add('Génération d’un fond (setState)', bgMs, 'ms', 500);
+
+    await wait(450);                // laisser charger les PNG du panorama
+    sc.setState(s);
+    for (let i = 0; i < 10; i++) sc.frame(0.016);   // chauffe
+    const samples = [];
+    for (let k = 0; k < 5; k++) samples.push(timeIt(() => sc.frame(0.016), 60));
+    const png = !!(sc.bg && sc.bg.art && sc.bg.art.canvas);
+    add('Scene.frame — ' + name + (png ? '' : ' (secours)'), median(samples), 'ms', 2);
+  }
+  return rows;
+}
+
+function render(rows) {
+  const tb = document.querySelector('#out tbody');
+  tb.innerHTML = '';
+  for (const r of rows) {
+    const ok = r.value <= r.budget;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + r.label + '</td>'
+      + '<td class="num">' + r.value.toFixed(r.value < 10 ? 2 : 1) + ' ' + r.unit + '</td>'
+      + '<td class="num">&lt; ' + r.budget + ' ' + r.unit + '</td>'
+      + '<td class="' + (ok ? 'ok' : 'bad') + '">' + (ok ? 'OK' : 'dépassé') + '</td>';
+    tb.appendChild(tr);
+  }
+  document.getElementById('out').hidden = false;
+}
+
+async function go() {
+  const btn = document.getElementById('run');
+  btn.disabled = true;
+  document.getElementById('state').textContent = 'Mesure en cours…';
+  const rows = await measure();
+  render(rows);
+  document.getElementById('state').textContent = 'Terminé.';
+  document.getElementById('env').textContent = 'Appareil : ' + navigator.hardwareConcurrency + ' cœurs logiques · ' + (devicePixelRatio || 1) + '× · ' + navigator.userAgent;
+  btn.disabled = false;
+}
+
+document.getElementById('run').addEventListener('click', go);
+addEventListener('load', () => setTimeout(go, 300));
+</script>
+</body>
+</html>

@@ -136,8 +136,9 @@ Le propriétaire a validé ce qui suit. Gardez-le, sauf demande contraire.
   - Les salles forment une grille de deux rangées, de 4 colonnes minimum. Une salle s'allume quand son module est construit.
   - Il doit rester **évolutif** : chaque élément de `DS.shipSpec` produit un détail visible. Vous pouvez enrichir ou redessiner, mais ne retirez aucune correspondance (tableau ci-dessous).
 - **Fonds.**
-  - Six plans en parallaxe qui défilent vers la gauche : ciel profond, nébuleuse lointaine, planète et lune, étoiles scintillantes, nébuleuse proche, objets.
-  - Les calques mesurent 720×320 px et **se raccordent sans couture** horizontalement : le bruit est échantillonné sur un cylindre, voir `seam()`.
+  - Chaque secteur est rendu par des **panoramas peints** chargés depuis `assets/` : par couche, **deux tuiles de 1440×640 px** assemblées en un panorama de **2880×640 px**, plus un **calque avant transparent** (objets proches). Les couches défilent vers la gauche à des vitesses différentes (parallaxe) et **se raccordent sans couture** horizontalement (fondu court sur le raccord, voir `js/scene.js`).
+  - Nommage : `assets/fond-<thème>-1.png` et `-2.png` pour le fond, `assets/fond-<thème>-avant-1.png` et `-avant-2.png` pour le calque avant. Les six thèmes : `terra ice violet mars gas dark`.
+  - Un **rendu procédural de secours** s'affiche tant qu'un PNG n'est pas chargé, ou s'il échoue : six plans générés en code (ciel profond, nébuleuse lointaine, planète et lune, étoiles, nébuleuse proche, objets), calibrés sur 720×320 px avec raccord cylindrique (`seam()`). Gardez ce secours fonctionnel.
 - **Le fond d'Hélios (secteur 1, thème `terra`) est validé tel quel** : ne le modifiez pas sans demande explicite.
 - **Identité des autres secteurs**, à conserver :
 
@@ -208,6 +209,16 @@ Pas de création d'objets lourds à chaque image : préparez les sprites à l'av
    Le résultat doit se terminer par `OK`.
 2. Ouvrez `tools/atelier.html` dans un navigateur. On y voit toutes les icônes, les salles, les planètes, quatre stades du vaisseau, les fonds des secteurs et le Spécimen. La console ne doit afficher aucune erreur.
 3. Ouvrez `index.html` et jouez une minute : cliquez sur le vaisseau, construisez un module, changez d'onglet. Aucune erreur dans la console.
+4. Pour un changement qui touche au rendu, ouvrez `tools/perfs.html` : il chronomètre `Scene.frame`, `DS.buildShip` et la génération d'un fond, une fois les images chargées, et compare aux budgets ci-dessous. Vérifiez-le aussi sur mobile pour un changement lourd.
+
+## Distribution (côté propriétaire)
+
+Deux chemins coexistent, volontairement différents :
+
+- **GitHub Pages** (`.github/workflows/pages.yml`) publie la **source telle quelle** (`index.html`, `css/`, `js/`, `assets/`) à chaque mise à jour de `main` : c'est la version jouable en ligne.
+- **`tools/build.js`** (`npm run build`) produit un dossier `dist/` **minifié et obfusqué** (les scripts réunis en un seul `js/app.min.js`), destiné à un hébergement manuel (itch.io, etc.). `dist/` et `node_modules/` ne sont pas versionnés.
+
+L'obfuscation rend le build pénible à lire mais **ne protège pas la licence** : le code d'un jeu web est toujours téléchargé par le navigateur, et la source reste de toute façon lisible dans ce dépôt public. Les conditions d'utilisation sont dans `LICENSE`.
 
 ## Façon de travailler
 

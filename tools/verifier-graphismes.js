@@ -26,7 +26,7 @@ const changed = new Set([
   ...sh('git ls-files --others --exclude-standard').split('\n')
 ].filter(Boolean));
 
-const ALLOWED = [/^js\/pixelforge\.js$/, /^js\/sprites\.js$/, /^js\/ship\.js$/, /^js\/scene\.js$/, /^assets\/[^/]+\.png$/, /^tools\/atelier\.html$/];
+const ALLOWED = [/^js\/pixelforge\.js$/, /^js\/sprites\.js$/, /^js\/ship\.js$/, /^js\/scene\.js$/, /^assets\/[^/]+\.png$/, /^tools\/atelier\.html$/, /^tools\/perfs\.html$/];
 const existedAtRef = f => { try { sh('git cat-file -e ' + ref + ':' + f); return true; } catch (e) { return false; } };
 
 for (const f of changed) {
