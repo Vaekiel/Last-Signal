@@ -16,7 +16,8 @@ const warn = m => console.log('! ' + m);
 
 // ------------------------------------------------------------------ 1. fichiers modifiés
 const PROTECTED = new Set(['js/data.js', 'js/engine.js', 'js/ui.js', 'js/main.js', 'css/style.css', 'index.html',
-  'tools/simulation.js', 'tools/simulation-reference.txt', 'tools/verifier-graphismes.js', 'AGENTS.md', 'README.md']);
+  'tools/simulation.js', 'tools/simulation-reference.txt', 'tools/verifier-graphismes.js', 'tools/build.js',
+  'package.json', 'package-lock.json', 'AGENTS.md', 'README.md', 'LICENSE', '.gitignore']);
 const ref = process.argv[2] || sh('git log -1 --format=%H -- ' + [...PROTECTED].join(' ')) || 'HEAD';
 console.log('Référence : ' + sh('git log -1 --format="%h %s" ' + ref) + '\n');
 const changed = new Set([

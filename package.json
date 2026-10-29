@@ -1,0 +1,19 @@
+{
+  "name": "last-signal",
+  "version": "1.0.0",
+  "description": "Last Signal — jeu incrémental de survie spatiale en pixel-art, entièrement en français.",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Vaekiel",
+  "scripts": {
+    "build": "node tools/build.js",
+    "simulation": "node tools/simulation.js 0.75 3",
+    "verif": "node tools/verifier-graphismes.js"
+  },
+  "devDependencies": {
+    "csso": "5.0.5",
+    "html-minifier-terser": "7.2.0",
+    "javascript-obfuscator": "5.9.0",
+    "terser": "5.51.2"
+  }
+}

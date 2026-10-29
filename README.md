@@ -6,6 +6,8 @@ Votre vaisseau, l'**ARCHE-09**, s'est égaré après un saut hyperspatial raté.
 
 L'esprit s'inspire de [DodecaDragons](https://demonin.com/games/dodecaDragons/) : des onglets qui se débloquent au fil de la partie, des nombres qui grimpent vite et plusieurs couches de prestige qui s'empilent.
 
+![Capture de Last Signal : l'ARCHE-09 au-dessus d'une géante gazeuse, avec la barre de ressources, le menu et l'état du vaisseau.](docs/capture.png)
+
 ## Jouer
 
 Ouvrez `index.html` dans un navigateur. Il n'y a rien à installer : le jeu tourne hors ligne, mais les polices viennent de Google Fonts.
@@ -66,8 +68,14 @@ js/main.js          démarrage, boucle de jeu, sauvegardes
 tools/simulation.js joueur automatique pour vérifier l'équilibrage
 tools/atelier.html  aperçu de tous les graphismes, sans lancer de partie
 tools/verifier-graphismes.js  contrôle qu'une modification ne touche que les graphismes
+tools/build.js      build de distribution (minification + obfuscation)
+docs/capture.png    capture utilisée dans ce README
 AGENTS.md           consignes pour les assistants IA (ChatGPT, Codex…)
+LICENSE             conditions d'utilisation
+package.json        scripts et dépendances de build (côté développement)
 ```
+
+Le jeu source n'a **aucune dépendance** et tourne en ouvrant `index.html`. Le `package.json` ne sert qu'au développement (build et outils) ; il n'est pas nécessaire pour jouer.
 
 Tous les chiffres d'équilibrage se trouvent dans `js/data.js`. Après une modification, lancez la simulation :
 
@@ -104,3 +112,22 @@ Si vous modifiez vous-même l'équilibrage, régénérez la référence :
 ```
 node tools/simulation.js 0.75 3 > tools/simulation-reference.txt
 ```
+
+## Build pour héberger le jeu
+
+Pour publier le jeu sur un hébergeur (itch.io, Netlify, GitHub Pages…), on génère une version minifiée et obfusquée :
+
+```
+npm install
+npm run build
+```
+
+Le dossier `dist/` contient alors une copie autonome du jeu : `index.html`, un seul script `js/app.min.js` (les huit fichiers concaténés, minifiés puis obfusqués), `style.min.css` et les images. Il suffit de zipper le contenu de `dist/` (avec `index.html` à la racine) et de téléverser l'archive.
+
+`dist/` et `node_modules/` ne sont pas versionnés : ce sont des sorties de build, régénérées par la commande ci-dessus.
+
+Une précision honnête : le code d'un jeu web est toujours téléchargé par le navigateur, donc toujours récupérable. L'obfuscation rend le build pénible à lire, mais ne le rend pas secret — et le code source complet reste de toute façon lisible dans ce dépôt public. Le build sert surtout à décourager la copie directe depuis le site hébergé.
+
+## Licence
+
+© 2026 Vaekiel. Tous droits réservés. Le code est public pour consultation, mais n'est pas libre : vous pouvez lire le code et jouer, mais pas le redistribuer, le vendre ni en faire une œuvre dérivée sans autorisation. Voir [LICENSE](LICENSE). Les polices (Chakra Petch, Tektur) relèvent de leur propre licence (SIL Open Font License).
