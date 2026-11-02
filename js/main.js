@@ -138,29 +138,53 @@
     let st = null;
     if (data && typeof data.save === 'string') { try { st = DS.sanitize(JSON.parse(data.save)); } catch (e) { st = null; } }
     const restoredHot = !!st;
+    const hadSave = !!readLocal();
     if (!st) st = readLocal();
     const fresh = !st;
     s = st || DS.newState();
     if (fresh) DS.log(s, 'ARCHE-09 en ligne. Balise de détresse émise. Personne ne répond.', 'alert', 'antenna');
     ui.init(s);
-    if (!fresh && !restoredHot) {
-      const elapsed = (Date.now() - (s.savedAt || Date.now())) / 1000;
-      if (elapsed > 10) {
-        const rep = DS.offline(s, elapsed);
-        ui.render(true);
-        ui.offlineReport(rep);
-      }
+
+    // Démarre les boucles et les écouteurs une seule fois, à l'entrée dans le jeu.
+    let started = false;
+    function startLoops() {
+      if (started) return; started = true;
+      lastTick = Date.now();
+      setInterval(tick, 100);
+      setInterval(() => DS.save(false), 15000);
+      requestAnimationFrame(frame);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { writeLocal(); cloudSave(true); }
+        else lastTick = Math.max(lastTick, Date.now() - 12 * 3600 * 1000);
+      });
+      window.addEventListener('pagehide', writeLocal);
+      cloudInit();
     }
-    lastTick = Date.now();
-    setInterval(tick, 100);
-    setInterval(() => DS.save(false), 15000);
-    requestAnimationFrame(frame);
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { writeLocal(); cloudSave(true); }
-      else lastTick = Math.max(lastTick, Date.now() - 12 * 3600 * 1000);
+    // Entre dans le jeu : masque l'écran-titre, rapport hors-ligne si reprise, puis boucles.
+    function enter(runOffline) {
+      if (DS.titleScreen) DS.titleScreen.hide();
+      if (runOffline && !fresh) {
+        const elapsed = (Date.now() - (s.savedAt || Date.now())) / 1000;
+        if (elapsed > 10) { const rep = DS.offline(s, elapsed); ui.render(true); ui.offlineReport(rep); }
+      }
+      startLoops();
+    }
+
+    // Rechargement à chaud ou écran-titre absent : on entre directement (comportement d'avant).
+    if (restoredHot || !DS.titleScreen) { enter(true); return; }
+
+    DS.titleScreen.show({
+      hasSave: hadSave,
+      reduced: reducedMotion.matches || (s.settings && s.settings.motion === false),
+      exportCode: function () { return DS.exportCode(); },
+      resume: hadSave ? 'reprendre la partie' : '',
+      onContinue: function () { enter(true); },
+      onNew: function () { if (hadSave) DS.resetGame(); enter(false); },
+      onImport: function (code) {
+        try { const next = DS.importCode(code); DS.replaceState(next, 'Sauvegarde importée.'); enter(false); return true; }
+        catch (e) { return false; }
+      }
     });
-    window.addEventListener('pagehide', writeLocal);
-    cloudInit();
   }
 
   const hot = window.claude && window.claude.hot;
