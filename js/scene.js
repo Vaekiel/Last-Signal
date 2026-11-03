@@ -327,6 +327,25 @@
     return panoramique;
   }
 
+  // Hélios : les hautes parois des PNG transparents trouent visuellement la planète.
+  // Garder les débris du bas sans conserver leurs contours tramés dans le ciel.
+  function degagerCielHelios(panoramique) {
+    const ctx = panoramique.getContext('2d');
+    const debut = Math.round(panoramique.height * 0.59);
+    const fin = Math.round(panoramique.height * 0.82);
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, panoramique.width, debut);
+    for (let y = debut; y < fin; y++) {
+      const t = (y - debut + 0.5) / (fin - debut);
+      const opacite = t * t * (3 - 2 * t);
+      ctx.globalAlpha = 1 - opacite;
+      ctx.fillRect(0, y, panoramique.width, 1);
+    }
+    ctx.restore();
+  }
+
   function chargerDecor(type) {
     if (decorCache[type]) return decorCache[type];
     const resultat = { canvas: null, avant: null, images: [], echec: false };
@@ -350,6 +369,8 @@
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
           const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
+          // Les grands rochers d'Hélios restent sous la zone de jeu et la planète.
+          if (cle === 'avant' && type === 'terra') degagerCielHelios(panoramique);
           resultat[cle] = panoramique;
         };
         photo.onerror = function () {
