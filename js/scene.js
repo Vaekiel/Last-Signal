@@ -329,141 +329,6 @@
     return panoramique;
   }
 
-  // Deux illustrations sur un anneau : A → B → A, sans aucun miroir.
-  // Le raccord suit les pixels les plus proches, une seule fois au chargement.
-  function assemblerFondCyclique(photos, largeurTuile, hauteur) {
-    const recouvrement = 384;
-    const pas = largeurTuile - recouvrement;
-    const largeur = pas * 2;
-    const panorama = canvas(largeur, hauteur);
-    const ctx = panorama.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(photos[0], 0, 0);
-    ctx.drawImage(photos[1], pas, 0);
-    // La fin de B continue au début du panorama, pixel pour pixel.
-    ctx.drawImage(photos[1], pas, 0, recouvrement, hauteur,
-      0, 0, recouvrement, hauteur);
-
-    function repliSimple() {
-      // Secours sans lecture de pixels, notamment pour les fichiers locaux.
-      const largeurFondu = 48;
-      // Raccord extérieur : B à gauche, puis A à droite.
-      ctx.globalAlpha = 1;
-      ctx.drawImage(photos[0], 0, 0, recouvrement, hauteur,
-        0, 0, recouvrement, hauteur);
-      for (let x = 0; x < recouvrement; x++) {
-        const v = Math.max(0, Math.min(1,
-          (x - recouvrement / 2 + largeurFondu / 2) / largeurFondu));
-        const fondu = v * v * (3 - 2 * v);
-        ctx.globalAlpha = 1 - fondu;
-        ctx.drawImage(photos[1], pas + x, 0, 1, hauteur,
-          x, 0, 1, hauteur);
-        // Raccord central : A à gauche, puis B à droite.
-        ctx.globalAlpha = 1 - fondu;
-        ctx.drawImage(photos[0], pas + x, 0, 1, hauteur,
-          pas + x, 0, 1, hauteur);
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    try {
-      const sources = canvas(largeurTuile * 2, hauteur);
-      const srcCtx = sources.getContext('2d', { willReadFrequently: true });
-      srcCtx.drawImage(photos[0], 0, 0);
-      srcCtx.drawImage(photos[1], largeurTuile, 0);
-      const pixels = srcCtx.getImageData(0, 0, largeurTuile * 2, hauteur).data;
-      const largeurSource = largeurTuile * 2;
-
-      function trouverCoupe(debutA, debutB) {
-        const intervalle = 4, marge = 32;
-        const colonnes = Math.floor((recouvrement - marge * 2) / intervalle);
-        const lignes = Math.ceil(hauteur / intervalle);
-        const parents = new Int16Array(lignes * colonnes);
-        let precedent = new Float64Array(colonnes);
-        let courant = new Float64Array(colonnes);
-        for (let ligne = 0; ligne < lignes; ligne++) {
-          const y = Math.min(hauteur - 1, ligne * intervalle + 2);
-          for (let col = 0; col < colonnes; col++) {
-            const x = marge + col * intervalle;
-            const a = (y * largeurSource + debutA + x) * 4;
-            const b = (y * largeurSource + largeurTuile + debutB + x) * 4;
-            const ecart = Math.abs(pixels[a] - pixels[b]) +
-              Math.abs(pixels[a + 1] - pixels[b + 1]) +
-              Math.abs(pixels[a + 2] - pixels[b + 2]);
-            const aVoisin = a + intervalle * 4;
-            const bVoisin = b + intervalle * 4;
-            const contour = Math.abs(pixels[a] - pixels[aVoisin]) +
-              Math.abs(pixels[b] - pixels[bVoisin]);
-            const cout = ecart + contour * 0.25 +
-              Math.abs(x - recouvrement / 2) * 0.03;
-            let meilleur = col;
-            if (ligne > 0) {
-              if (col > 0 && precedent[col - 1] < precedent[meilleur]) meilleur = col - 1;
-              if (col + 1 < colonnes && precedent[col + 1] < precedent[meilleur]) meilleur = col + 1;
-            }
-            courant[col] = cout + (ligne ? precedent[meilleur] : 0);
-            parents[ligne * colonnes + col] = meilleur;
-          }
-          const ancien = precedent; precedent = courant; courant = ancien;
-        }
-        let minimum = 0;
-        for (let col = 1; col < colonnes; col++) {
-          if (precedent[col] < precedent[minimum]) minimum = col;
-        }
-        const choix = new Int16Array(lignes);
-        for (let ligne = lignes - 1; ligne >= 0; ligne--) {
-          choix[ligne] = marge + minimum * intervalle;
-          minimum = parents[ligne * colonnes + minimum];
-        }
-        const coupe = new Int16Array(hauteur);
-        for (let y = 0; y < hauteur; y++) {
-          // Une légère moyenne sur le chemin, jamais sur les pixels du décor.
-          const ligne = Math.floor(y / intervalle);
-          let somme = 0;
-          for (let d = -2; d <= 2; d++) {
-            somme += choix[Math.min(lignes - 1, Math.max(0, ligne + d))];
-          }
-          coupe[y] = Math.round(somme / 5);
-        }
-        return coupe;
-      }
-
-      const coupeAB = trouverCoupe(pas, 0);
-      const coupeBA = trouverCoupe(0, pas);
-      const image = ctx.getImageData(0, 0, largeur, hauteur);
-      const resultat = image.data;
-      const rayon = 10;
-      for (let y = 0; y < hauteur; y++) {
-        for (let x = 0; x < recouvrement; x++) {
-          const destinationAB = (y * largeur + pas + x) * 4;
-          const destinationBA = (y * largeur + x) * 4;
-          const sourceA1 = (y * largeurSource + pas + x) * 4;
-          const sourceB1 = (y * largeurSource + largeurTuile + x) * 4;
-          const sourceA2 = (y * largeurSource + x) * 4;
-          const sourceB2 = (y * largeurSource + largeurTuile + pas + x) * 4;
-          const valeurAB = Math.max(0, Math.min(1,
-            (x - coupeAB[y] + rayon) / (rayon * 2)));
-          const valeurBA = Math.max(0, Math.min(1,
-            (x - coupeBA[y] + rayon) / (rayon * 2)));
-          const fonduAB = valeurAB * valeurAB * (3 - 2 * valeurAB);
-          const fonduBA = valeurBA * valeurBA * (3 - 2 * valeurBA);
-          for (let c = 0; c < 3; c++) {
-            resultat[destinationAB + c] = pixels[sourceA1 + c] * (1 - fonduAB) +
-              pixels[sourceB1 + c] * fonduAB;
-            resultat[destinationBA + c] = pixels[sourceB2 + c] * (1 - fonduBA) +
-              pixels[sourceA2 + c] * fonduBA;
-          }
-          resultat[destinationAB + 3] = 255;
-          resultat[destinationBA + 3] = 255;
-        }
-      }
-      ctx.putImageData(image, 0, 0);
-    } catch (err) {
-      repliSimple();
-    }
-    return panorama;
-  }
-
   // Hélios : les hautes parois des PNG transparents trouent visuellement la planète.
   // Garder les débris du bas sans conserver leurs contours tramés dans le ciel.
   function degagerCielHelios(panoramique) {
@@ -506,18 +371,14 @@
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
           if (cle === 'canvas') {
-            if (type === 'terra') {
-              // Hélios : deux moitiés d'une illustration réellement cyclique.
-              // Aucun calcul de couture : les bords des PNG concordent déjà.
-              const panorama = canvas(tuileLargeur * 2, tuileHauteur);
-              const pctx = panorama.getContext('2d');
-              pctx.imageSmoothingEnabled = false;
-              pctx.drawImage(photos[0], 0, 0);
-              pctx.drawImage(photos[1], tuileLargeur, 0);
-              resultat.canvas = panorama;
-            } else {
-              resultat.canvas = assemblerFondCyclique(photos, tuileLargeur, tuileHauteur);
-            }
+            // Chaque secteur possède maintenant deux moitiés d'un fond cyclique.
+            // Les tuiles sont assemblées sans fondu, miroir ni calcul par image.
+            const panorama = canvas(tuileLargeur * 2, tuileHauteur);
+            const pctx = panorama.getContext('2d');
+            pctx.imageSmoothingEnabled = false;
+            pctx.drawImage(photos[0], 0, 0);
+            pctx.drawImage(photos[1], tuileLargeur, 0);
+            resultat.canvas = panorama;
           } else {
             // Ancienne couche proche conservée pour une éventuelle réactivation.
             const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
