@@ -293,37 +293,38 @@
     }));
   }
 
-  // Évite les bandes sombres aux jonctions du calque proche, sans flou ni lecture des pixels.
-  function fondreRaccordsAvant(ctx, largeurTuile, hauteur) {
-    const largeurFondu = 96;
-    const largeurPanorama = largeurTuile * 2;
-    const motifs = [];
+  // Les deux images du décor se recouvrent sur 320 px au lieu de se toucher.
+  // Le fondu est préparé une seule fois au chargement, sans flou ni pixels noirs ajoutés.
+  function assemblerPanorama(photos, largeurTuile, hauteur) {
+    const recouvrement = 320;
+    const pas = largeurTuile - recouvrement;
+    const panoramique = canvas(pas * 2, hauteur);
+    const ctx = panoramique.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
 
-    // Seize niveaux d'effacement en trame Bayer 4 × 4 : pixels toujours nets.
-    for (let niveau = 1; niveau <= 16; niveau++) {
-      const masque = canvas(4, 4);
-      const mctx = masque.getContext('2d');
-      mctx.fillStyle = '#000';
-      for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
-        if (BAYER[y * 4 + x] < niveau / 16) mctx.fillRect(x, y, 1, 1);
-      }
-      motifs[niveau] = ctx.createPattern(masque, 'repeat');
+    // Première image et partie continue de la deuxième.
+    ctx.drawImage(photos[0], 0, 0);
+    ctx.drawImage(photos[1], recouvrement, 0, pas, hauteur,
+      largeurTuile, 0, pas, hauteur);
+
+    // Transition 1 -> 2 : les mêmes colonnes se superposent réellement.
+    for (let x = 0; x < recouvrement; x++) {
+      const t = (x + 0.5) / recouvrement;
+      ctx.globalAlpha = t * t * (3 - 2 * t);
+      ctx.drawImage(photos[1], x, 0, 1, hauteur, pas + x, 0, 1, hauteur);
     }
 
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    // Le centre unit les deux PNG ; le bord extérieur unit les répétitions du panorama.
-    for (const raccord of [0, largeurTuile]) {
-      for (let distance = 0; distance < largeurFondu; distance++) {
-        const niveau = Math.ceil(16 * (largeurFondu - distance) / largeurFondu);
-        ctx.fillStyle = motifs[niveau];
-        const gauche = (raccord - 1 - distance + largeurPanorama) % largeurPanorama;
-        const droite = raccord + distance;
-        ctx.fillRect(gauche, 0, 1, hauteur);
-        ctx.fillRect(droite, 0, 1, hauteur);
-      }
+    // Transition 2 -> 1 : fermeture du panorama sans couture au bouclage.
+    ctx.globalAlpha = 1;
+    ctx.drawImage(photos[1], pas, 0, recouvrement, hauteur,
+      0, 0, recouvrement, hauteur);
+    for (let x = 0; x < recouvrement; x++) {
+      const t = (x + 0.5) / recouvrement;
+      ctx.globalAlpha = t * t * (3 - 2 * t);
+      ctx.drawImage(photos[0], x, 0, 1, hauteur, x, 0, 1, hauteur);
     }
-    ctx.restore();
+    ctx.globalAlpha = 1;
+    return panoramique;
   }
 
   function chargerDecor(type) {
@@ -337,7 +338,6 @@
       // Tous les secteurs sont peints en HD natif, 2 × 1440 × 640 pixels.
       const tuileLargeur = 1440;
       const tuileHauteur = 640;
-      const panoramaLargeur = tuileLargeur * 2;
       let recus = 0;
       for (let i = 1; i <= 2; i++) {
         const photo = new Image();
@@ -349,22 +349,7 @@
             return;
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
-          // Deux tuiles originales côte à côte pour conserver les détails HD.
-          const panoramique = canvas(panoramaLargeur, tuileHauteur);
-          const ctx = panoramique.getContext('2d');
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(photos[0], 0, 0);
-          ctx.drawImage(photos[1], tuileLargeur, 0);
-          if (cle === 'canvas') {
-            // Fondu court sur le raccord horizontal, sans lecture des pixels.
-            for (let x = 0; x < 32; x++) {
-              ctx.globalAlpha = (x + 1) / 32;
-              ctx.drawImage(panoramique, x, 0, 1, tuileHauteur, panoramaLargeur - 32 + x, 0, 1, tuileHauteur);
-            }
-            ctx.globalAlpha = 1;
-          } else {
-            fondreRaccordsAvant(ctx, tuileLargeur, tuileHauteur);
-          }
+          const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
           resultat[cle] = panoramique;
         };
         photo.onerror = function () {
@@ -605,12 +590,12 @@
       function dessinerPlan(image, avance) {
         if (!image) return;
         const facteur = hauteur / image.height;
-        const pas = image.width * facteur;
+        const pas = Math.max(1, Math.round(image.width * facteur));
         const depart = cadreDepart[bg.type] || 0;
-        const mouvement = (depart + t * avance) * facteur;
+        const mouvement = Math.round((depart + t * avance) * facteur);
         const decalage = ((mouvement % pas) + pas) % pas;
         for (let x = -decalage; x < largeur; x += pas) {
-          ctx.drawImage(image, Math.round(x), 0, Math.ceil(pas) + 1, hauteur);
+          ctx.drawImage(image, x, 0, pas, hauteur);
         }
       }
 
