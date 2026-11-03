@@ -40,6 +40,10 @@
 <p>Quatre prototypes à la taille réelle des salles : réacteur solaire, serre hydroponique, laboratoire et Spécimen symbiotique (organisme non humanoïde). Les trois salles techniques sont superposées au vaisseau dans le rendu HD ; le Spécimen est une étude visuelle en sept stades, non encore raccordée au cocon du jeu.</p>
 <div class="grid" id="pilots"></div>
 
+<h2>Quatorze salles HD complémentaires — T0 à T4</h2>
+<p>Les 14 autres modules : cinq états par salle, affichés en pixels nets. Les 17 modules du vaisseau utilisent maintenant la même architecture de sprites évolutifs.</p>
+<div class="grid" id="completeRooms"></div>
+
 <h2>Évolution du vaisseau</h2>
 <div class="grid" id="ships"></div>
 
@@ -89,6 +93,33 @@ atlasSalles.onload = function () {
   });
 };
 atlasSalles.src = '../assets/salles-pilotes-hd.png';
+
+// Atlas secondaire : les 14 autres modules, cinq paliers chacun.
+const autresSalles = [
+  ['Drone récupérateur', 'drone'], ['Collecteur de glace', 'ice'],
+  ["Condenseur d'oxygène", 'oxygen'], ['Banc de batteries', 'battery'],
+  ['Extracteur de métal', 'extractor'], ['Fonderie orbitale', 'foundry'],
+  ['Module cryogénique', 'cryo'], ['Essaim de nanites', 'nanites'],
+  ['Réseau de capteurs', 'array'], ['Réacteur à fusion', 'fusion'],
+  ['Moissonneuse orbitale', 'harvester'], ['Biodôme', 'biodome'],
+  ['Calculateur quantique', 'quantum'], ['Forge à plasma', 'plasma']
+];
+const atlasAutres = new Image();
+atlasAutres.onload = function () {
+  if (atlasAutres.naturalWidth !== 440 || atlasAutres.naturalHeight !== 840) return;
+  autresSalles.forEach(([nom], rang) => {
+    for (let tier = 0; tier < 5; tier++) {
+      const cv = document.createElement('canvas');
+      cv.width = 88; cv.height = 60;
+      cv.style.width = '176px'; cv.style.height = '120px';
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(atlasAutres, tier * 88, rang * 60, 88, 60, 0, 0, 88, 60);
+      cell($('completeRooms'), nom + ' — T' + tier, cv);
+    }
+  });
+};
+atlasAutres.src = '../assets/salles-completes-hd.png';
 
 // États de partie fictifs, uniquement pour l'aperçu (lecture seule par le rendu)
 const STAGES = [
