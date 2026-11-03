@@ -57,7 +57,44 @@
   DS.makeRamp('shipCopper', '#38190c', '#ffb55b', 8, { amb: 0.24, shiny: 19 });
   DS.makeRamp('shipGlass', '#081d32', '#a7eaff', 8, { amb: 0.28, shiny: 36 });
 
-  function drawRoom(F, x, y, w, h, id, seed) {
+  // Indicateurs de spécialisation : quatre paliers lisibles sans changer
+  // l'intérieur fonctionnel ni la taille de la salle.
+  function detailsProgressionSalle(F, x, y, w, h, id, niveau) {
+    if (id === 'empty') {
+      F.rect(x + 9, y + 9, w - 18, 10, 'shipShadow', { bevel: 1 });
+      for (let k = 0; k < 4; k++) F.line(x + 12 + k * 6, y + 12, x + 15 + k * 6, y + 16, 'shipRib', { tone: 0.3 });
+      F.px(x + w - 7, y + 5, 'glowR', 0.35);
+      return;
+    }
+    const R = ROOMS[id] || ROOMS.empty;
+    const palier = Math.max(1, Math.min(4, niveau || 1));
+    // Les petits indicateurs s'allument aux niveaux 1, 5, 15 et 30 du module.
+    F.rect(x + 5, y + h - 9, w - 10, 3, 'shipShadow', { bevel: 0 });
+    for (let i = 0; i < 4; i++) {
+      F.rect(x + 7 + i * 8, y + h - 8, 5, 1,
+        i < palier ? R.glow : 'hullB', { bevel: 0 });
+    }
+    if (palier >= 2) {
+      // Premier renforcement : distribution d'énergie latérale.
+      F.rect(x + 2, y + 6, 2, 14, 'shipRib', { bevel: 0, tone: 0.58 });
+      F.px(x + 2, y + 7, R.glow, 0.9);
+      F.px(x + 2, y + 18, R.glow, 0.65);
+    }
+    if (palier >= 3) {
+      // Deuxième renforcement : pupitre de contrôle indépendant.
+      F.rect(x + w - 10, y + 8, 7, 5, 'shipShadow', { bevel: 1 });
+      F.rect(x + w - 9, y + 9, 5, 2, R.glow, { bevel: 0 });
+      F.px(x + w - 8, y + 11, 'white', 0.82);
+    }
+    if (palier >= 4) {
+      // Salle de pointe : alimentation double et signature lumineuse de couleur.
+      F.line(x + 8, y + 3, x + w - 9, y + 3, 'shipRib', { tone: 0.84 });
+      for (let i = 0; i < 3; i++) F.px(x + 11 + i * 10, y + 3, R.glow, 1);
+      F.px(x + w - 4, y + 18, 'white', 0.9);
+    }
+  }
+
+  function drawRoom(F, x, y, w, h, id, seed, niveau) {
     const R = ROOMS[id] || ROOMS.empty;
     const r = rng(seed || 1);
     const mat = 'room-' + id;
@@ -230,6 +267,7 @@
       F.px(x + w - 5, y + 4, R.glow, 0.95);
       F.px(x + w - 5, y + 6, 'glowC', 0.5);
     }
+    detailsProgressionSalle(F, x, y, w, h, id, niveau);
   }
   DS.drawRoom = drawRoom;
   DS.roomURL = (function () {
@@ -248,10 +286,13 @@
   DS.shipSpec = function (s) {
     const L = id => s.mods[id] || 0;
     const R = id => !!s.research[id];
-    const rooms = DS.MODULES.filter(m => L(m.id) > 0).map(m => m.room);
+    const modules = DS.MODULES.filter(m => L(m.id) > 0);
+    const rooms = modules.map(m => m.room);
+    const roomTiers = modules.map(m => 1 + Number(L(m.id) >= 5) +
+      Number(L(m.id) >= 15) + Number(L(m.id) >= 30));
     const stage = s.specimen.found ? DS.SPEC_STAGES.filter(st => s.specimen.level >= st.lvl).length - 1 : -1;
     return {
-      rooms,
+      rooms, roomTiers,
       solar: Math.min(4, Math.ceil(L('solar') / 5)), solarBig: L('solar') >= 25, gold: R('photo'),
       tanks: Math.min(4, Math.ceil(L('condenser') / 3)),
       greenhouse: Math.min(3, Math.ceil(L('greenhouse') / 4)),
@@ -572,6 +613,11 @@
       if (rm.id !== 'empty') {
         // Condensateurs et diode de contrôle, dans le cadre et non la salle.
         p(x + 5, y + 1, 7, 1, '#dceefa');
+        // Signal des quatre paliers, au pixel physique sur la garniture.
+        for (let k = 0; k < 4; k++) {
+          p(x + 6 + k * 8, y + rm.h - 2, 4, 1,
+            k < (rm.tier || 1) ? (ROOMS[rm.id] || ROOMS.empty).light : '#33445b');
+        }
         p(x + rm.w - 6, y + 2, 2, 2, '#ff9a2e');
         p(x + rm.w - 8, y + rm.h - 2, 6, 1, '#62b8f0');
         // Détails propres à la fonction de chaque salle, à l'échelle HD.
@@ -625,12 +671,12 @@
     const cols = n / 2;
     const bodyW = cols * (RW + WALL) + WALL, bodyH = BAND * 2 + 2 * (RH + WALL) + WALL;
     const STERN = 66 + (spec.fusion ? 10 : 0), BOW = 84 + (spec.bowDrill ? 22 : 0) + (spec.mandibles ? 10 : 0);
-    const TOP = 82, BOT = 50 + (spec.cocoon >= 0 ? 12 : 0);
+    const TOP = 82, BOT = 56 + (spec.cocoon >= 0 ? 12 : 0);
     const bx = STERN, by = TOP;
     const W = STERN + bodyW + BOW, H = TOP + bodyH + BOT;
     const F = new DS.Forge(W, H);
     const r = rng(cols * 7 + 3);
-    const A = { windows: [], blink: [], smoke: [], glowG: [], radar: [], hangars: [], arms: [], holo: null, sing: null, beacon: null, cocoon: null, plasma: [], lights: [] };
+    const A = { windows: [], blink: [], smoke: [], glowG: [], radar: [], hangars: [], arms: [], holo: null, sing: null, beacon: null, cocoon: null, plasma: [], lights: [], roomFX: [] };
     const engines = [], flick = [];
     const cy = by + bodyH / 2;
 
@@ -677,30 +723,31 @@
     for (let i = 0; i < spec.turrets; i++) items.push(['turret']);
     const deckStart = bx + 8, deckEnd = bx + bodyW - 54;
     const widths = { signal: 30, biodome: 56, dish: 34, labDome: 24, solar: spec.solarBig ? 34 : 28, tanks: 30, greenhouse: 28, chimney: 15, cargo: 30, quantum: 22, singularity: 26, turret: 22 };
-    let used = items.reduce((a, [k]) => a + widths[k] + 4, 0);
-    while (used > deckEnd - deckStart && items.length) { const it = items.pop(); used -= widths[it[0]] + 4; }
-    const fillers = ['hab', 'spire', 'radiator', 'hab', 'spire', 'hab'];
-    let x = deckStart, fi = 0;
-    // intercale des pièces de remplissage pour casser la silhouette
-    const per = ((deckEnd - deckStart) - used) / (items.length + 1);
-    let budget = per;
-    const placeFillers = () => {
-      while (budget > 14 && x + 34 < deckEnd) {
-        const k = fillers[fi++ % fillers.length];
-        const w0 = x;
-        const w = DORSAL[k](F, x, baseAt(x, 16), r, A, {});
-        x += w + 2;
-        budget -= (x - w0);
+    // Deux rails de pont superposés : ne jamais supprimer un équipement
+    // débloqué faute de place (anciennes tourelles et singularité perdues).
+    const railHaut = new Set(['labDome', 'solar', 'chimney', 'quantum', 'singularity', 'turret']);
+    const arriere = items.filter(([k]) => railHaut.has(k));
+    const avant = items.filter(([k]) => !railHaut.has(k));
+    const placerRail = (liste, elevation) => {
+      if (!liste.length) return;
+      const disponible = deckEnd - deckStart;
+      const largeurTotale = liste.reduce((a, [k]) => a + widths[k] + 3, -3);
+      const dernier = widths[liste[liste.length - 1][0]];
+      const compression = Math.min(1,
+        Math.max(0, (disponible - dernier) / Math.max(1, largeurTotale - dernier)));
+      let x = deckStart + Math.max(0, Math.floor((disponible - largeurTotale) / 2));
+      for (const [k, o] of liste) {
+        const xx = Math.round(Math.min(deckEnd - widths[k], x));
+        DORSAL[k](F, xx, baseAt(xx, widths[k]) - elevation, r, A, o || {});
+        x += (widths[k] + 3) * compression;
       }
-      x += Math.max(0, budget); budget = 0;
     };
-    placeFillers();
-    for (const [k, o] of items) {
-      const xx = Math.round(x);
-      const w = DORSAL[k](F, xx, baseAt(xx, widths[k]), r, A, o || {});
-      x += w + 4;
-      budget += per;
-      placeFillers();
+    // Les antennes et grands dômes restent devant les petits équipements.
+    placerRail(arriere, 16);
+    placerRail(avant, 0);
+    if (items.length < 3 && deckEnd - deckStart > 100) {
+      const fx = deckStart + Math.round((deckEnd - deckStart) / 2);
+      DORSAL.radiator(F, fx, baseAt(fx, 22), r, A, {});
     }
     DORSAL.tower(F, bx + bodyW - 50, by, r, A);
     F.rect(bx + 2, by - 3, bodyW - 6, 5, 'hull', { bevel: 2 });
@@ -746,8 +793,11 @@
     for (let i = 0; i < n; i++) {
       const row = i < cols ? 0 : 1, col = i % cols;
       const rx = bx + WALL + col * (RW + WALL), ry = roomsY + WALL + row * (RH + WALL);
-      drawRoom(F, rx, ry, RW, RH, spec.rooms[i] || 'empty', i * 31 + 7);
-      roomRects.push({ x: rx + 1, y: ry + 1, w: RW, h: RH, id: spec.rooms[i] || 'empty' });
+      const id = spec.rooms[i] || 'empty';
+      const tier = id === 'empty' ? 0 : (spec.roomTiers && spec.roomTiers[i]) || 1;
+      drawRoom(F, rx, ry, RW, RH, id, i * 31 + 7, tier);
+      roomRects.push({ x: rx + 1, y: ry + 1, w: RW, h: RH, id, tier });
+      if (id !== 'empty') A.roomFX.push({ x: rx + RW - 5, y: ry + 6, id, tier });
       if (!spec.rooms[i]) flick.push({ x: rx + RW - 5 + 1, y: ry + 3 + 1 });
     }
     for (let k = 0; k <= cols; k++) {
@@ -804,27 +854,29 @@
     for (let i = 0; i < spec.drills; i++) under.push(['drill', { i }]);
     if (spec.cocoon >= 0) under.push(['cocoon', { stage: spec.cocoon }]);
     for (let i = 0; i < spec.arm; i++) under.push(['arm']);
-    const uw = { hangar: 34, drill: 12, cocoon: 34, arm: 14, pod: 26, spike: 10 };
-    let ux = bx + 14;
-    const uEnd = bx + bodyW - 14;
-    const uUsed = under.reduce((a, [k]) => a + uw[k] + 6, 0);
-    let ubudget = Math.max(0, (uEnd - ux - uUsed) / (under.length + 1));
-    const fillUnder = () => {
-      while (ubudget >= 12) {
-        const k = ubudget > 34 && r() < 0.5 ? 'pod' : 'spike';
-        const w = VENTRAL[k](F, ux + (k === 'spike' ? 4 : 0), keelY + 6, r, A, {});
-        const gap = k === 'spike' ? 14 + (r() * 16 | 0) : 8;
-        ux += w + gap; ubudget -= w + gap;
+    const uw = { hangar: 34, drill: 12, cocoon: 34, arm: 14 };
+    const uStart = bx + 14, uEnd = bx + bodyW - 14;
+    const poserSousQuille = (liste, elevation) => {
+      if (!liste.length) return;
+      const disponible = uEnd - uStart;
+      const largeurTotale = liste.reduce((a, [k]) => a + uw[k] + 5, -5);
+      const dernier = uw[liste[liste.length - 1][0]];
+      const compression = Math.min(1,
+        Math.max(0, (disponible - dernier) / Math.max(1, largeurTotale - dernier)));
+      let ux = uStart + Math.max(0, Math.floor((disponible - largeurTotale) / 2));
+      for (const [k, o] of liste) {
+        const xx = Math.round(Math.min(uEnd - uw[k], ux));
+        VENTRAL[k](F, xx + (k === 'drill' || k === 'arm' ? 4 : 0),
+          keelY + elevation, r, A, o || {});
+        ux += (uw[k] + 5) * compression;
       }
-      ux += Math.max(0, ubudget); ubudget = 0;
     };
-    fillUnder();
-    for (const [k, o] of under) {
-      if (ux > uEnd - uw[k]) break;
-      const w = VENTRAL[k](F, Math.round(ux + (k === 'drill' || k === 'arm' ? 4 : 0)), keelY + 6, r, A, o || {});
-      ux += w + 6;
-      ubudget += Math.max(0, (uEnd - bx - 14 - uUsed) / (under.length + 1));
-      fillUnder();
+    // Baies et cocon à la quille ; foreuses et bras sur un rail inférieur.
+    poserSousQuille(under.filter(([k]) => k === 'hangar' || k === 'cocoon'), 5);
+    poserSousQuille(under.filter(([k]) => k === 'drill' || k === 'arm'), 11);
+    if (!under.length) {
+      VENTRAL.pod(F, bx + 30, keelY + 5, r, A, {});
+      VENTRAL.spike(F, bx + bodyW - 30, keelY + 5, r, A, {});
     }
 
     // ---- proue
@@ -914,7 +966,8 @@
         arms: A.arms.map(sh), holo: sh(A.holo), sing: sh(A.sing), beacon: sh(A.beacon), cocoon: sh(A.cocoon),
         plasma: A.plasma.map(p => ({ x0: p.x0 + P, x1: p.x1 + P, y: p.y + P })), drill: sh(bowDrill),
         ring: spec.ring ? { x: bx - 14 + P, y: cy + P, rx: 8, ry: bodyH / 2 + 13 } : null,
-        drones: spec.drones, shield: spec.shield, nanites: spec.nanites
+        drones: spec.drones, shield: spec.shield, nanites: spec.nanites,
+        roomFX: A.roomFX.map(sh)
       }
     };
   };
@@ -953,6 +1006,20 @@
         if ((i + ph) % 4 === 0) px(ox + d.x + i, oy + d.y - (hh >> 1), 1, hh, 'rgba(10,14,24,.55)');
       }
       if (!still && Math.random() < 0.3) { ctx.fillStyle = '#ffd23a'; ctx.fillRect(Math.round(ox + d.x + d.len + Math.random() * 3), Math.round(oy + d.y + (Math.random() - 0.5) * 6), 1, 1); }
+    }
+    // Petits témoins animés dans les modules réellement construits.
+    for (const rm of fx.roomFX || []) {
+      const pulse = still ? 1 : Math.sin(t * (1.8 + rm.tier * 0.35) + rm.x * 0.19);
+      if (pulse > -0.4) {
+        px(ox + rm.x, oy + rm.y, 1, 2, (ROOMS[rm.id] || ROOMS.empty).light);
+        if (rm.tier >= 3 && pulse > 0.65) px(ox + rm.x - 2, oy + rm.y, 1, 1, '#ffffff');
+      }
+    }
+    // Coque en difficulté : étincelles localisées, sans toucher à la vie.
+    if (s && s.hull < 45 && (still || Math.sin(t * 9) > 0.65)) {
+      const hx = sh.bx + Math.floor(sh.bodyW * 0.65), hy = sh.by + sh.bodyH - 5;
+      px(ox + hx, oy + hy, 2, 1, '#ff9a2e');
+      px(ox + hx + 3, oy + hy - 2, 1, 1, '#ffd36a');
     }
     // fumées des cheminées
     for (const sm of fx.smoke) {
