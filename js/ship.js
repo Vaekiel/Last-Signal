@@ -4,6 +4,48 @@
 (function (DS) {
   const RW = 44, RH = 30, WALL = 4, BAND = 10;
   DS.SHIP_ROOM = { w: RW, h: RH };
+  // Atelier HD : atlas optionnel de trois salles pilotes. Les sprites
+  // restent un complément du rendu Forge existant, qui sert de secours.
+  const SALLES_PILOTES = { solar: 0, greenhouse: 1, lab: 2 };
+  const EN_ATTENTE_HD = [];
+  let atlasPilotes = null;
+  let atlasPilotesPret = false;
+
+  function poserSallesPilotes(c, salles) {
+    if (!c || !salles || !atlasPilotesPret) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    for (const salle of salles) {
+      const rang = SALLES_PILOTES[salle.id];
+      if (rang === undefined) continue;
+      const palier = Math.max(1, Math.min(4, salle.tier || 1));
+      // Chaque vignette HD fait exactement 2 × SHIP_ROOM (88 × 60 px).
+      ctx.drawImage(atlasPilotes, palier * 88, rang * 60, 88, 60,
+        Math.round(salle.x * 2), Math.round(salle.y * 2), 88, 60);
+    }
+  }
+
+  function appliquerSallesPilotes(c, salles) {
+    if (atlasPilotesPret) poserSallesPilotes(c, salles);
+    else if (atlasPilotes) EN_ATTENTE_HD.push({ c, salles });
+  }
+
+  if (typeof Image !== 'undefined' && typeof document !== 'undefined') {
+    atlasPilotes = new Image();
+    atlasPilotes.onload = function () {
+      if (atlasPilotes.naturalWidth !== 616 || atlasPilotes.naturalHeight !== 240) return;
+      atlasPilotesPret = true;
+      for (const entree of EN_ATTENTE_HD) poserSallesPilotes(entree.c, entree.salles);
+      EN_ATTENTE_HD.length = 0;
+    };
+    // Relatif au fichier ship.js : fonctionne dans le jeu et dans tools/atelier.html.
+    const racine = document.currentScript && document.currentScript.src;
+    atlasPilotes.src = racine
+      ? new URL('../assets/salles-pilotes-hd.png', racine).href
+      : 'assets/salles-pilotes-hd.png';
+  }
+
   function rng(seed) {
     let x = (seed * 2654435761) >>> 0 || 1;
     return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
@@ -662,6 +704,7 @@
       const x = proue + 10 + k * 3, y = haut + 14 + Math.floor(k / 5);
       p(x, y, 2, 1, k % 3 === 0 ? '#d6faff' : '#60b5e5');
     }
+    appliquerSallesPilotes(c, salles);
     return c;
   }
 
