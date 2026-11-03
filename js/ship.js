@@ -4,6 +4,69 @@
 (function (DS) {
   const RW = 44, RH = 30, WALL = 4, BAND = 10;
   DS.SHIP_ROOM = { w: RW, h: RH };
+  // Tous les compartiments disposent maintenant de cinq états HD en
+  // surcouche : T0 vide, T1-T4 selon les niveaux réels des modules.
+  // Les deux atlas sont facultatifs et n'altèrent jamais le rendu Forge de secours.
+  const SALLES_HD = {
+    solar: ['pilotes', 0], greenhouse: ['pilotes', 1], lab: ['pilotes', 2],
+    drone: ['autres', 0], ice: ['autres', 1], oxygen: ['autres', 2],
+    battery: ['autres', 3], extractor: ['autres', 4], foundry: ['autres', 5],
+    cryo: ['autres', 6], nanites: ['autres', 7], array: ['autres', 8],
+    fusion: ['autres', 9], harvester: ['autres', 10], biodome: ['autres', 11],
+    quantum: ['autres', 12], plasma: ['autres', 13]
+  };
+  const ATLAS_HD = {
+    pilotes: { nom: 'salles-pilotes-hd.png', w: 616, h: 240, image: null, pret: false, attente: [] },
+    autres: { nom: 'salles-completes-hd.png', w: 440, h: 840, image: null, pret: false, attente: [] }
+  };
+
+  function poserSallesHD(c, salles, famille) {
+    const atlas = ATLAS_HD[famille];
+    if (!c || !salles || !atlas || !atlas.pret) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    for (const salle of salles) {
+      const info = SALLES_HD[salle.id];
+      if (!info || info[0] !== famille) continue;
+      const palier = Math.max(1, Math.min(4, salle.tier || 1));
+      // Une salle logique 44 × 30 devient exactement 88 × 60 pixels HD.
+      ctx.drawImage(atlas.image, palier * 88, info[1] * 60, 88, 60,
+        Math.round(salle.x * 2), Math.round(salle.y * 2), 88, 60);
+    }
+  }
+
+  function appliquerSallesHD(c, salles) {
+    if (!c || !salles) return;
+    for (const famille of ['pilotes', 'autres']) {
+      const atlas = ATLAS_HD[famille];
+      if (atlas.pret) poserSallesHD(c, salles, famille);
+      else if (atlas.image) atlas.attente.push({ c, salles });
+    }
+  }
+
+  if (typeof Image !== 'undefined' && typeof document !== 'undefined') {
+    const racine = document.currentScript && document.currentScript.src;
+    for (const famille of ['pilotes', 'autres']) {
+      const atlas = ATLAS_HD[famille];
+      atlas.image = new Image();
+      atlas.image.onload = function () {
+        if (atlas.image.naturalWidth !== atlas.w || atlas.image.naturalHeight !== atlas.h) {
+          atlas.attente.length = 0;
+          return;
+        }
+        atlas.pret = true;
+        for (const entree of atlas.attente) poserSallesHD(entree.c, entree.salles, famille);
+        atlas.attente.length = 0;
+      };
+      atlas.image.onerror = function () { atlas.attente.length = 0; };
+      // Référence au fichier JS, utilisable dans index.html et tools/atelier.html.
+      atlas.image.src = racine
+        ? new URL('../assets/' + atlas.nom, racine).href
+        : 'assets/' + atlas.nom;
+    }
+  }
+
   function rng(seed) {
     let x = (seed * 2654435761) >>> 0 || 1;
     return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
@@ -662,6 +725,7 @@
       const x = proue + 10 + k * 3, y = haut + 14 + Math.floor(k / 5);
       p(x, y, 2, 1, k % 3 === 0 ? '#d6faff' : '#60b5e5');
     }
+    appliquerSallesHD(c, salles);
     return c;
   }
 
