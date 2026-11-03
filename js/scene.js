@@ -270,7 +270,7 @@
   // Diagnostic temporaire : désactiver tous les avant-plans peints sans toucher aux PNG.
   const AVANT_PLANS_ACTIFS = false;
   // Cadrage pensé pour le rapport largeur/hauteur réel de la scène du vaisseau.
-  const cadreDepart = { terra: 1280, ice: 880, violet: 845, mars: 845, gas: 880, dark: 870 };
+  const cadreDepart = { terra: 240, ice: 880, violet: 845, mars: 845, gas: 880, dark: 870 };
   // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
   const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
     mars: '#35140c', gas: '#092532', dark: '#110c28' };
@@ -506,8 +506,18 @@
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
           if (cle === 'canvas') {
-            // Fond peint continu, préparé une seule fois avant l'animation.
-            resultat.canvas = assemblerFondCyclique(photos, tuileLargeur, tuileHauteur);
+            if (type === 'terra') {
+              // Hélios : deux moitiés d'une illustration réellement cyclique.
+              // Aucun calcul de couture : les bords des PNG concordent déjà.
+              const panorama = canvas(tuileLargeur * 2, tuileHauteur);
+              const pctx = panorama.getContext('2d');
+              pctx.imageSmoothingEnabled = false;
+              pctx.drawImage(photos[0], 0, 0);
+              pctx.drawImage(photos[1], tuileLargeur, 0);
+              resultat.canvas = panorama;
+            } else {
+              resultat.canvas = assemblerFondCyclique(photos, tuileLargeur, tuileHauteur);
+            }
           } else {
             // Ancienne couche proche conservée pour une éventuelle réactivation.
             const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
