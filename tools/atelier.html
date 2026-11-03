@@ -36,6 +36,10 @@
 <h2>Planètes</h2>
 <div class="grid" id="planets"></div>
 
+<h2>Salles pilotes HD — évolution du vaisseau</h2>
+<p>Quatre prototypes à la taille réelle des salles : réacteur solaire, serre hydroponique, laboratoire et Spécimen symbiotique (organisme non humanoïde). Les trois salles techniques sont superposées au vaisseau dans le rendu HD ; le Spécimen est une étude visuelle en sept stades, non encore raccordée au cocon du jeu.</p>
+<div class="grid" id="pilots"></div>
+
 <h2>Évolution du vaisseau</h2>
 <div class="grid" id="ships"></div>
 
@@ -63,6 +67,28 @@ for (const n of DS.SPRITE_NAMES) {
 }
 for (const id of Object.keys(DS.ROOMS)) cell($('rooms'), id, img(DS.roomURL(id), 96, 68));
 for (const p of ['terra', 'ice', 'violet', 'mars', 'gas', 'dark']) cell($('planets'), p, img(DS.planetURL(p, 96, 7), 96, 96));
+
+// Atlas de sprites natifs HD : 88 × 60 pixels par vignette.
+const etiquettes = [
+  ['Réacteur solaire', 5], ['Serre hydroponique', 5],
+  ['Laboratoire scientifique', 5], ['Spécimen symbiotique', 7]
+];
+const atlasSalles = new Image();
+atlasSalles.onload = function () {
+  if (atlasSalles.naturalWidth !== 616 || atlasSalles.naturalHeight !== 240) return;
+  etiquettes.forEach(([nom, nombre], rang) => {
+    for (let tier = 0; tier < nombre; tier++) {
+      const cv = document.createElement('canvas');
+      cv.width = 88; cv.height = 60;
+      cv.style.width = '176px'; cv.style.height = '120px';
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(atlasSalles, tier * 88, rang * 60, 88, 60, 0, 0, 88, 60);
+      cell($('pilots'), nom + ' — ' + (rang === 3 ? 'S' : 'T') + tier, cv);
+    }
+  });
+};
+atlasSalles.src = '../assets/salles-pilotes-hd.png';
 
 // États de partie fictifs, uniquement pour l'aperçu (lecture seule par le rendu)
 const STAGES = [
