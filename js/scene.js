@@ -270,7 +270,7 @@
   // Diagnostic temporaire : désactiver tous les avant-plans peints sans toucher aux PNG.
   const AVANT_PLANS_ACTIFS = false;
   // Cadrage pensé pour le rapport largeur/hauteur réel de la scène du vaisseau.
-  const cadreDepart = { terra: 900, ice: 880, violet: 845, mars: 845, gas: 880, dark: 870 };
+  const cadreDepart = { terra: 1280, ice: 880, violet: 845, mars: 845, gas: 880, dark: 870 };
   // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
   const cielSecteur = { terra: '#35120d', ice: '#061c30', violet: '#22092e',
     mars: '#35140c', gas: '#092532', dark: '#110c28' };
@@ -329,6 +329,39 @@
     return panoramique;
   }
 
+  // Reconstituer une vraie bande cyclique : A → B → B miroir → A miroir.
+  // Les deux raccords extérieurs ont les mêmes pixels, sans fondu temporel.
+  function assemblerFondCyclique(photos, largeurTuile, hauteur) {
+    const recouvrement = 256;
+    const demiLargeur = largeurTuile * 2 - recouvrement;
+    const panorama = canvas(demiLargeur * 2, hauteur);
+    const ctx = panorama.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    function peindreDemiPanorama() {
+      // La transition A → B tombe dans la région sombre commune des deux images.
+      ctx.drawImage(photos[0], 0, 0);
+      ctx.drawImage(photos[1], recouvrement, 0,
+        largeurTuile - recouvrement, hauteur,
+        largeurTuile, 0, largeurTuile - recouvrement, hauteur);
+      for (let x = 0; x < recouvrement; x++) {
+        const t = (x + 0.5) / recouvrement;
+        ctx.globalAlpha = t * t * (3 - 2 * t);
+        ctx.drawImage(photos[1], x, 0, 1, hauteur,
+          largeurTuile - recouvrement + x, 0, 1, hauteur);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    peindreDemiPanorama();
+    ctx.save();
+    ctx.translate(demiLargeur * 2, 0);
+    ctx.scale(-1, 1);
+    peindreDemiPanorama();
+    ctx.restore();
+    return panorama;
+  }
+
   // Hélios : les hautes parois des PNG transparents trouent visuellement la planète.
   // Garder les débris du bas sans conserver leurs contours tramés dans le ciel.
   function degagerCielHelios(panoramique) {
@@ -371,9 +404,8 @@
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
           if (cle === 'canvas') {
-            // On conserve les deux scènes intactes, sans les juxtaposer.
-            resultat.fonds = photos;
-            resultat.canvas = photos[0];
+            // Fond peint continu, préparé une seule fois avant l'animation.
+            resultat.canvas = assemblerFondCyclique(photos, tuileLargeur, tuileHauteur);
           } else {
             // Ancienne couche proche conservée pour une éventuelle réactivation.
             const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
@@ -628,41 +660,11 @@
         }
       }
 
-      // Une image entière remplit la scène avec un balayage borné, jamais répétée.
-      function dessinerCiel(image, phase) {
-        const facteur = Math.max(largeur / image.width, hauteur / image.height) * 1.04;
-        const largeurImage = Math.ceil(image.width * facteur);
-        const hauteurImage = Math.ceil(image.height * facteur);
-        const margeX = Math.max(0, largeurImage - largeur);
-        const margeY = Math.max(0, hauteurImage - hauteur);
-        const balayage = (1 + Math.sin(t * 0.08 + phase)) / 2;
-        const x = -Math.round(margeX * (0.15 + 0.7 * balayage));
-        const y = -Math.round(margeY / 2);
-        ctx.drawImage(image, x, y, largeurImage, hauteurImage);
-      }
-
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.imageSmoothingEnabled = false;
-      const fonds = art.fonds;
-      if (fonds && fonds.length === 2) {
-        // Deux paysages successifs avec fondu plein écran de 10 s toutes les 55 s.
-        const duree = 55;
-        const temps = ((t % (2 * duree)) + 2 * duree) % (2 * duree);
-        const vue = Math.floor(temps / duree);
-        const position = temps - vue * duree;
-        const premier = (vue + (bg.type === 'terra' ? 1 : 0)) % 2;
-        ctx.globalAlpha = 1;
-        dessinerCiel(fonds[premier], premier);
-        if (position > duree - 10) {
-          const progression = (position - (duree - 10)) / 10;
-          ctx.globalAlpha = progression * progression * (3 - 2 * progression);
-          dessinerCiel(fonds[1 - premier], 1 - premier);
-          ctx.globalAlpha = 1;
-        }
-      } else if (art.canvas) {
-        dessinerCiel(art.canvas, 0);
-      }
-      // Calques proches laissés désactivés pour le diagnostic graphique.
+      // Défilement horizontal infini, sans pause ni changement d'illustration.
+      dessinerPlan(art.canvas, 7);
+      // Les avant-plans restent désactivés après le diagnostic des artefacts.
       if (AVANT_PLANS_ACTIFS) dessinerPlan(art.avant, 16);
       ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
     }
