@@ -370,10 +370,16 @@
             return;
           }
           if (++recus !== 2 || (obligatoire && resultat.echec)) return;
-          const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
-          // Les grands rochers d'Hélios restent sous la zone de jeu et la planète.
-          if (cle === 'avant' && type === 'terra') degagerCielHelios(panoramique);
-          resultat[cle] = panoramique;
+          if (cle === 'canvas') {
+            // On conserve les deux scènes intactes, sans les juxtaposer.
+            resultat.fonds = photos;
+            resultat.canvas = photos[0];
+          } else {
+            // Ancienne couche proche conservée pour une éventuelle réactivation.
+            const panoramique = assemblerPanorama(photos, tuileLargeur, tuileHauteur);
+            if (type === 'terra') degagerCielHelios(panoramique);
+            resultat[cle] = panoramique;
+          }
         };
         photo.onerror = function () {
           if (obligatoire) resultat.echec = true;
@@ -622,11 +628,41 @@
         }
       }
 
+      // Une image entière remplit la scène avec un balayage borné, jamais répétée.
+      function dessinerCiel(image, phase) {
+        const facteur = Math.max(largeur / image.width, hauteur / image.height) * 1.04;
+        const largeurImage = Math.ceil(image.width * facteur);
+        const hauteurImage = Math.ceil(image.height * facteur);
+        const margeX = Math.max(0, largeurImage - largeur);
+        const margeY = Math.max(0, hauteurImage - hauteur);
+        const balayage = (1 + Math.sin(t * 0.08 + phase)) / 2;
+        const x = -Math.round(margeX * (0.15 + 0.7 * balayage));
+        const y = -Math.round(margeY / 2);
+        ctx.drawImage(image, x, y, largeurImage, hauteurImage);
+      }
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.imageSmoothingEnabled = false;
-      // Ciel, nébuleuses et planètes : dessin opaque couvrant toute la scène.
-      dessinerPlan(art.canvas, 7);
-      // Éléments proches : transparence native et parallaxe distincte.
+      const fonds = art.fonds;
+      if (fonds && fonds.length === 2) {
+        // Deux paysages successifs avec fondu plein écran de 10 s toutes les 55 s.
+        const duree = 55;
+        const temps = ((t % (2 * duree)) + 2 * duree) % (2 * duree);
+        const vue = Math.floor(temps / duree);
+        const position = temps - vue * duree;
+        const premier = (vue + (bg.type === 'terra' ? 1 : 0)) % 2;
+        ctx.globalAlpha = 1;
+        dessinerCiel(fonds[premier], premier);
+        if (position > duree - 10) {
+          const progression = (position - (duree - 10)) / 10;
+          ctx.globalAlpha = progression * progression * (3 - 2 * progression);
+          dessinerCiel(fonds[1 - premier], 1 - premier);
+          ctx.globalAlpha = 1;
+        }
+      } else if (art.canvas) {
+        dessinerCiel(art.canvas, 0);
+      }
+      // Calques proches laissés désactivés pour le diagnostic graphique.
       if (AVANT_PLANS_ACTIFS) dessinerPlan(art.avant, 16);
       ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
     }
