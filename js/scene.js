@@ -293,6 +293,39 @@
     }));
   }
 
+  // Évite les bandes sombres aux jonctions du calque proche, sans flou ni lecture des pixels.
+  function fondreRaccordsAvant(ctx, largeurTuile, hauteur) {
+    const largeurFondu = 96;
+    const largeurPanorama = largeurTuile * 2;
+    const motifs = [];
+
+    // Seize niveaux d'effacement en trame Bayer 4 × 4 : pixels toujours nets.
+    for (let niveau = 1; niveau <= 16; niveau++) {
+      const masque = canvas(4, 4);
+      const mctx = masque.getContext('2d');
+      mctx.fillStyle = '#000';
+      for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        if (BAYER[y * 4 + x] < niveau / 16) mctx.fillRect(x, y, 1, 1);
+      }
+      motifs[niveau] = ctx.createPattern(masque, 'repeat');
+    }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    // Le centre unit les deux PNG ; le bord extérieur unit les répétitions du panorama.
+    for (const raccord of [0, largeurTuile]) {
+      for (let distance = 0; distance < largeurFondu; distance++) {
+        const niveau = Math.ceil(16 * (largeurFondu - distance) / largeurFondu);
+        ctx.fillStyle = motifs[niveau];
+        const gauche = (raccord - 1 - distance + largeurPanorama) % largeurPanorama;
+        const droite = raccord + distance;
+        ctx.fillRect(gauche, 0, 1, hauteur);
+        ctx.fillRect(droite, 0, 1, hauteur);
+      }
+    }
+    ctx.restore();
+  }
+
   function chargerDecor(type) {
     if (decorCache[type]) return decorCache[type];
     const resultat = { canvas: null, avant: null, images: [], echec: false };
@@ -330,14 +363,7 @@
             }
             ctx.globalAlpha = 1;
           } else {
-            // Atténuer les objets aux extrémités avant le défilement.
-            ctx.globalCompositeOperation = 'destination-out';
-            for (let x = 0; x < 20; x++) {
-              ctx.fillStyle = 'rgba(0,0,0,' + ((20 - x) / 20).toFixed(3) + ')';
-              ctx.fillRect(x, 0, 1, tuileHauteur);
-              ctx.fillRect(panoramaLargeur - 1 - x, 0, 1, tuileHauteur);
-            }
-            ctx.globalCompositeOperation = 'source-over';
+            fondreRaccordsAvant(ctx, tuileLargeur, tuileHauteur);
           }
           resultat[cle] = panoramique;
         };
