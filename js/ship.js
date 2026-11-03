@@ -671,7 +671,9 @@
     const cols = n / 2;
     const bodyW = cols * (RW + WALL) + WALL, bodyH = BAND * 2 + 2 * (RH + WALL) + WALL;
     const STERN = 66 + (spec.fusion ? 10 : 0), BOW = 84 + (spec.bowDrill ? 22 : 0) + (spec.mandibles ? 10 : 0);
-    const TOP = 82, BOT = 56 + (spec.cocoon >= 0 ? 12 : 0);
+    // Antenne du Signal haute : réserver la marge nécessaire à sa couronne.
+    const TOP = spec.signal >= 2 ? 112 : 82;
+    const BOT = 56 + (spec.cocoon >= 0 ? 12 : 0);
     const bx = STERN, by = TOP;
     const W = STERN + bodyW + BOW, H = TOP + bodyH + BOT;
     const F = new DS.Forge(W, H);
