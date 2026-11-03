@@ -267,6 +267,8 @@
   const dossierDecor = scriptDecor && scriptDecor.src
     ? new URL('../assets/', scriptDecor.src).href : 'assets/';
   const decorCache = {};
+  // Diagnostic temporaire : désactiver tous les avant-plans peints sans toucher aux PNG.
+  const AVANT_PLANS_ACTIFS = false;
   // Cadrage pensé pour le rapport largeur/hauteur réel de la scène du vaisseau.
   const cadreDepart = { terra: 900, ice: 880, violet: 845, mars: 845, gas: 880, dark: 870 };
   // Fond proche des couleurs approuvées, visible uniquement pendant le chargement.
@@ -380,7 +382,7 @@
       }
     }
     chargerPaire('', 'canvas', true);
-    chargerPaire('-avant', 'avant', false);
+    if (AVANT_PLANS_ACTIFS) chargerPaire('-avant', 'avant', false);
     return resultat;
   }
 
@@ -625,7 +627,7 @@
       // Ciel, nébuleuses et planètes : dessin opaque couvrant toute la scène.
       dessinerPlan(art.canvas, 7);
       // Éléments proches : transparence native et parallaxe distincte.
-      dessinerPlan(art.avant, 16);
+      if (AVANT_PLANS_ACTIFS) dessinerPlan(art.avant, 16);
       ctx.setTransform(this.resolution, 0, 0, this.resolution, 0, 0);
     }
 
