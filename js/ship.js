@@ -747,7 +747,7 @@
     // Les antennes et grands dômes restent devant les petits équipements.
     placerRail(arriere, 16);
     placerRail(avant, 0);
-    if (items.length < 3 && deckEnd - deckStart > 100) {
+    if (!items.length && deckEnd - deckStart > 100) {
       const fx = deckStart + Math.round((deckEnd - deckStart) / 2);
       DORSAL.radiator(F, fx, baseAt(fx, 22), r, A, {});
     }
@@ -858,24 +858,28 @@
     for (let i = 0; i < spec.arm; i++) under.push(['arm']);
     const uw = { hangar: 34, drill: 12, cocoon: 34, arm: 14 };
     const uStart = bx + 14, uEnd = bx + bodyW - 14;
-    const poserSousQuille = (liste, elevation) => {
+    const poserSousQuille = (liste, elevation, origine, limite) => {
       if (!liste.length) return;
-      const disponible = uEnd - uStart;
+      const disponible = limite - origine;
       const largeurTotale = liste.reduce((a, [k]) => a + uw[k] + 5, -5);
       const dernier = uw[liste[liste.length - 1][0]];
       const compression = Math.min(1,
         Math.max(0, (disponible - dernier) / Math.max(1, largeurTotale - dernier)));
-      let ux = uStart + Math.max(0, Math.floor((disponible - largeurTotale) / 2));
+      let ux = origine + Math.max(0, Math.floor((disponible - largeurTotale) / 2));
       for (const [k, o] of liste) {
-        const xx = Math.round(Math.min(uEnd - uw[k], ux));
+        const xx = Math.round(Math.min(limite - uw[k], ux));
         VENTRAL[k](F, xx + (k === 'drill' || k === 'arm' ? 4 : 0),
           keelY + elevation, r, A, o || {});
         ux += (uw[k] + 5) * compression;
       }
     };
-    // Baies et cocon à la quille ; foreuses et bras sur un rail inférieur.
-    poserSousQuille(under.filter(([k]) => k === 'hangar' || k === 'cocoon'), 5);
-    poserSousQuille(under.filter(([k]) => k === 'drill' || k === 'arm'), 11);
+    // Zones distinctes : les hangars ne cachent plus les outils sous la quille.
+    const supports = under.filter(([k]) => k === 'hangar' || k === 'cocoon');
+    const outils = under.filter(([k]) => k === 'drill' || k === 'arm');
+    const partage = supports.length && outils.length
+      ? uStart + Math.round((uEnd - uStart) * 0.6) : uEnd;
+    poserSousQuille(supports, 5, uStart, partage);
+    poserSousQuille(outils, 11, supports.length ? partage : uStart, uEnd);
     if (!under.length) {
       VENTRAL.pod(F, bx + 30, keelY + 5, r, A, {});
       VENTRAL.spike(F, bx + bodyW - 30, keelY + 5, r, A, {});
