@@ -1,79 +1,92 @@
 <p align="center">
-  <img src="docs/capture.png" alt="Last Signal — l'ARCHE-09 à la dérive" width="880">
+  <img src="docs/capture.png" alt="Last Signal — l'ARCHE-09, perdue au cœur du silence" width="880">
 </p>
 
-<h1 align="center">Last Signal</h1>
+<h1 align="center">LAST SIGNAL</h1>
+
+<p align="center"><strong>Un dernier appel dans le vide.</strong></p>
+<p align="center"><em>Quelque part, au-delà des étoiles, quelqu'un attend encore votre signal.</em></p>
 
 <p align="center">
-  <em>Un dernier appel dans le vide. Répare ton vaisseau, garde ton équipage en vie, et transmets le signal.</em>
-</p>
-
-<p align="center">
-  <a href="https://vaekiel.github.io/Last-Signal/"><img src="https://img.shields.io/badge/▶_jouer-en%20ligne-46d8ff?style=for-the-badge&labelColor=0c1628" alt="Jouer en ligne"></a>
+  <a href="https://vaekiel.github.io/Last-Signal/"><img src="https://img.shields.io/badge/▶_JOUER-EN_LIGNE-62d5f5?style=for-the-badge&labelColor=0c1628" alt="Jouer gratuitement à Last Signal"></a>
   &nbsp;
-  <img src="https://img.shields.io/badge/pixel--art-fait%20main-ff9a2e?style=for-the-badge&labelColor=0c1628" alt="Pixel-art fait main">
+  <img src="https://img.shields.io/badge/100%25-GRATUIT-8be0b6?style=for-the-badge&labelColor=0c1628" alt="Jeu entièrement gratuit">
   &nbsp;
-  <img src="https://img.shields.io/badge/100%25-hors%20ligne-32d874?style=for-the-badge&labelColor=0c1628" alt="100% hors ligne">
+  <img src="https://img.shields.io/badge/SANS-COMPTE-e7bb8f?style=for-the-badge&labelColor=0c1628" alt="Aucun compte nécessaire">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/langue-français-e8f1ff?labelColor=0c1628" alt="Français">
-  <img src="https://img.shields.io/badge/techno-JavaScript%20vanilla-e8f1ff?labelColor=0c1628" alt="JavaScript vanilla">
-  <img src="https://img.shields.io/badge/dépendances-aucune-e8f1ff?labelColor=0c1628" alt="Aucune dépendance">
+  <img src="https://img.shields.io/badge/univers-science--fiction-c2ddf2?labelColor=0c1628" alt="Science-fiction">
+  <img src="https://img.shields.io/badge/style-pixel--art-c2ddf2?labelColor=0c1628" alt="Pixel art">
+  <img src="https://img.shields.io/badge/langue-français-c2ddf2?labelColor=0c1628" alt="En français">
+  <img src="https://img.shields.io/badge/supports-PC%20%7C%20mobile%20%7C%20tablette-c2ddf2?labelColor=0c1628" alt="PC, mobile et tablette">
 </p>
 
 ---
 
-**Last Signal** est un jeu incrémental (clicker) de survie spatiale en pixel-art, entièrement en français.
+## ◈ Le silence après le saut
 
-Votre vaisseau, l'**ARCHE-09**, s'est égaré après un saut hyperspatial raté. Les réserves fondent, l'équipage compte sur vous, et quelque part au loin, la Terre attend toujours un signe de vie. Récupérez des débris, reconstruisez l'ARCHE-09 pièce par pièce et frayez-vous un chemin de retour — un système après l'autre.
+Il ne devait s'agir que d'un voyage.
 
-## ▶️ Jouer
+Puis tout a basculé.
 
-**[vaekiel.github.io/Last-Signal](https://vaekiel.github.io/Last-Signal/)** — ça tourne directement dans le navigateur, **rien à installer**.
+Le vaisseau **ARCHE-09** dérive désormais loin de sa route, perdu dans une immensité qui ne répond plus. Les instruments clignotent, les ressources s'amenuisent et chaque minute semble éloigner un peu plus l'équipage de chez lui.
 
-- La partie est **sauvegardée automatiquement** dans votre navigateur.
-- Elle **continue de progresser** même fenêtre fermée.
-- Pensé pour le bureau comme pour le mobile.
+Vous êtes encore là. L'ARCHE-09 aussi.
 
-> Le reste se découvre en jouant. Pas de guide, pas de spoil ici : montez à bord.
+Mais pour combien de temps ?
 
-## ✨ Au programme
+**Last Signal** est un jeu de survie spatiale et de progression en pixel art, à vivre directement dans votre navigateur. À bord d'un vaisseau meurtri, vous devrez apprendre à faire face à l'inconnu, prendre des décisions et trouver votre propre chemin parmi les étoiles.
 
-- 🛰️ **Reconstruisez l'ARCHE-09** — récupérez des débris et transformez une épave en vaisseau capable de repartir.
-- ⚙️ **Des modules à construire et améliorer** — chaque salle ajoutée change ce que produit votre vaisseau… et se voit à l'écran.
-- 🔬 **Recherche & améliorations** — débloquez de nouvelles technologies pour tenir plus loin, plus longtemps.
-- 🧑‍🚀 **Un équipage à garder en vie** — surveillez l'oxygène, les vivres et l'intégrité de la coque : la survie n'est jamais acquise.
-- 🧭 **Des expéditions et des événements à choix** — des rencontres où vos décisions comptent, pour le meilleur et pour le pire.
-- 🌌 **Des secteurs aux ambiances uniques** — chaque région traversée a son décor, ses dangers et son atmosphère.
-- 🎨 **Un pixel-art animé fait main** — vaisseau évolutif, fonds en parallaxe et effets, dessinés au code image par image.
-- 🔁 **De la rejouabilité** — des paliers à repousser et de quoi recommencer plus fort.
+> **Ce qui vous attend au-delà du prochain signal ?** À vous de le découvrir. Ici, pas de solutions, pas de révélations : l'aventure commence à bord.
 
-<p align="center">
-  <img src="docs/capture.png" alt="Interface de Last Signal" width="820">
-</p>
+## ▶ Rejoindre l'ARCHE-09
 
-## 🖥️ Sous le capot
+**[◈ Jouer à Last Signal — Monter à bord](https://vaekiel.github.io/Last-Signal/)**
 
-Last Signal est volontairement **sans dépendance** et **jouable hors ligne** : il suffit d'ouvrir `index.html`.
+Le jeu est accessible gratuitement depuis un navigateur, **sans installation ni inscription**.
 
-- **JavaScript vanilla**, zéro bibliothèque, zéro étape de build côté jeu.
-- Un **moteur de rendu pixel-art maison** (matériaux, ombrages, tramage de Bayer) qui dessine icônes, vaisseau, fonds et créatures sur `<canvas>`.
-- **Sauvegarde locale** automatique, simulation qui tourne même hors ligne.
-- Seules les **polices** (Tektur, Chakra Petch) viennent de Google Fonts.
+Votre progression est **sauvegardée automatiquement dans votre navigateur** et peut continuer à évoluer en votre absence. Elle reste locale à l'appareil utilisé : la suppression des données du navigateur peut effacer la sauvegarde.
 
-## 🎨 Contribuer aux graphismes
+L'expérience est pensée pour les ordinateurs, les tablettes et les téléphones. La version source peut également fonctionner sans connexion Internet, une fois les fichiers disponibles localement.
 
-Le jeu sépare proprement **les mécaniques** (figées et équilibrées) et **les graphismes** (ouverts à l'amélioration). Si vous voulez toucher aux icônes, au vaisseau, aux fonds ou aux créatures :
+## ✧ Une traversée à vivre à votre rythme
 
-- Lisez d'abord [`AGENTS.md`](AGENTS.md) — il fixe le périmètre et la direction artistique.
-- Prévisualisez tout dans `tools/atelier.html`.
-- Avant de proposer un changement : `node tools/verifier-graphismes.js` doit se terminer par `OK` (il garantit que l'équilibrage n'a pas bougé).
+- **Un vaisseau à ramener à la vie** — ce qui n'était qu'une épave peut encore devenir votre refuge.
+- **Un équipage qui compte sur vous** — dans le vide, chaque décision a son importance.
+- **Des horizons inconnus** — l'espace est immense, et toutes les rencontres n'ont pas encore eu lieu.
+- **Une progression qui vous appartient** — observez l'ARCHE-09 évoluer au fil de votre voyage.
+- **Un univers en pixel art animé** — une atmosphère spatiale entre solitude, espoir et découverte.
 
-## 📜 Licence
+Nous préférons vous laisser rencontrer le reste en jouant.
 
-© 2026 **Vaekiel**. Tous droits réservés. Le code est public pour consultation et transparence, mais **n'est pas libre** : consultation et jeu autorisés ; réutilisation, redistribution ou revente soumises à autorisation. Voir [`LICENSE`](LICENSE).
+## ◇ Un signal à partager
 
-Les polices sont chargées depuis Google Fonts et relèvent de leur propre licence (SIL Open Font License).
+Une question, une découverte, une théorie ? Une situation vous résiste ou vous souhaitez simplement échanger avec d'autres voyageurs ?
 
-<p align="center"><sub>— … réception d'un dernier signal … —</sub></p>
+Le **Discord de Noctiloom Studio** est destiné à accueillir l'entraide, les discussions, les retours des joueurs et les nouvelles du studio. Il est encore en construction ; le lien d'invitation officiel sera ajouté ici lorsqu'il sera prêt.
+
+Pour préserver le plaisir des nouveaux joueurs, évitez les révélations et les solutions dans les titres des discussions. Les découvertes sont encore meilleures quand chacun peut les faire à son rythme.
+
+En attendant, les problèmes techniques peuvent être signalés dans les [issues GitHub du projet](https://github.com/Vaekiel/Last-Signal/issues).
+
+## ✦ Un jeu indépendant, libre d'accès
+
+**Last Signal** est une création indépendante de **Vaekiel**, présentée au sein de **Noctiloom Studio**.
+
+Le jeu est **entièrement gratuit**, sans achat en argent réel et sans compte obligatoire. Le projet peut évoluer : les retours des joueurs sont précieux pour améliorer l'expérience sans en dévoiler les surprises.
+
+Envie d'explorer un autre univers ? Découvrez également **[AETHERIUM — Chroniques des Arcanes](https://github.com/Vaekiel/Aetherium)**, un jeu fantasy de collection et de découvertes.
+
+## 📜 Droits et utilisation
+
+© 2026 **Vaekiel** — Tous droits réservés.
+
+Vous pouvez jouer gratuitement à la version officielle. Le dépôt GitHub est public pour consultation, mais **Last Signal n'est pas un logiciel libre**. La reproduction, la modification, la redistribution et l'exploitation du code ou des ressources sont soumises aux conditions de la [licence du projet](LICENSE), sous réserve des exceptions prévues par la loi.
+
+Les polices tierces restent soumises à leurs licences respectives.
+
+---
+
+<p align="center"><em>« Ici l'ARCHE-09… Est-ce que quelqu'un nous reçoit ? »</em></p>
+<p align="center"><sub>◈ LAST SIGNAL · Noctiloom Studio ◈</sub></p>
