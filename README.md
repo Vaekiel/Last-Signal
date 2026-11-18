@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/capture.png" alt="Last Signal — l'ARCHE-09, perdue au cœur du silence" width="880">
+  <img src="docs/banner.png" alt="Last Signal — l'ARCHE-09, perdue au cœur du silence" width="860">
 </p>
 
 <h1 align="center">LAST SIGNAL</h1>
